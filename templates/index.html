@@ -463,6 +463,50 @@
         // Tabs
         function buildUrl(base) {
             const p = new URLSearchParams();
+
+            // Les filtres du "Tableau charges" sont indépendants des filtres globaux.
+            // On repart uniquement des paramètres déjà présents dans l'URL de ce tab.
+            if (state.tab === 'tableau-charges') {
+                const currentUrl = new URL(window.location.href);
+                const currentParams = new URLSearchParams(currentUrl.search);
+                const tableauFilterParams = [
+                    'sites',
+                    'period_type',
+                    'date_debut',
+                    'date_fin',
+                    'error_types',
+                    'moments',
+                    'moment_avancee',
+                    'charge_type',
+                    'energy_max',
+                    'energy_operator',
+                    'vehicle_type',
+                    'voltage_800v',
+                    'pdc_filter',
+                    'mac_address_filter',
+                    'pmax_min',
+                    'pmax_operator',
+                    'duration',
+                    'duration_operator',
+                    'error_moment',
+                    'visible_columns',
+                ];
+
+                for (const param of tableauFilterParams) {
+                    const value = currentParams.get(param);
+                    if (value) {
+                        p.set(param, value);
+                    }
+                }
+
+                if (p.get('period_type') === 'toute_periode') {
+                    p.delete('date_debut');
+                    p.delete('date_fin');
+                }
+
+                return p.toString() ? `${base}?${p}` : base;
+            }
+
             if (state.tab === 'projection') {
                 if (state.projectionSites.length) p.set('sites', state.projectionSites.join(','));
                 if (state.projectionHideEmpty) p.set('hide_empty', 'true');
@@ -479,36 +523,6 @@
             if (state.dateFin) p.set('date_fin', state.dateFin);
             if (state.selectedErrorTypes.length < state.errorTypes.length) p.set('error_types', state.selectedErrorTypes.join(','));
             if (state.selectedMoments.length < state.moments.length) p.set('moments', state.selectedMoments.join(','));
-            
-            // Pour le tableau charges, préserver les super filtres depuis l'URL actuelle
-            if (state.tab === 'tableau-charges') {
-                const currentUrl = new URL(window.location.href);
-                const currentParams = new URLSearchParams(currentUrl.search);
-                const superFilterParams = ['charge_type', 'energy_max', 'vehicle_type', 'voltage_800v', 'pdc_filter', 'pmax_min', 'error_moment'];
-                for (const param of superFilterParams) {
-                    const value = currentParams.get(param);
-                    if (value) {
-                        p.set(param, value);
-                    }
-                }
-
-                // Préserver le mode de période et ses dates propres au tableau charges
-                // (les filtres globaux state.dateDebut/dateFin peuvent être différents)
-                const tableauPeriodType = currentParams.get('period_type');
-                if (tableauPeriodType) {
-                    p.set('period_type', tableauPeriodType);
-                }
-
-                if (tableauPeriodType === 'toute_periode') {
-                    p.delete('date_debut');
-                    p.delete('date_fin');
-                } else {
-                    const tableauDateDebut = currentParams.get('date_debut');
-                    const tableauDateFin = currentParams.get('date_fin');
-                    if (tableauDateDebut) p.set('date_debut', tableauDateDebut);
-                    if (tableauDateFin) p.set('date_fin', tableauDateFin);
-                }
-            }
             
             return p.toString() ? `${base}?${p}` : base;
         }
