@@ -491,6 +491,23 @@
                         p.set(param, value);
                     }
                 }
+
+                // Préserver le mode de période et ses dates propres au tableau charges
+                // (les filtres globaux state.dateDebut/dateFin peuvent être différents)
+                const tableauPeriodType = currentParams.get('period_type');
+                if (tableauPeriodType) {
+                    p.set('period_type', tableauPeriodType);
+                }
+
+                if (tableauPeriodType === 'toute_periode') {
+                    p.delete('date_debut');
+                    p.delete('date_fin');
+                } else {
+                    const tableauDateDebut = currentParams.get('date_debut');
+                    const tableauDateFin = currentParams.get('date_fin');
+                    if (tableauDateDebut) p.set('date_debut', tableauDateDebut);
+                    if (tableauDateFin) p.set('date_fin', tableauDateFin);
+                }
             }
             
             return p.toString() ? `${base}?${p}` : base;
