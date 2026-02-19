@@ -1,0 +1,39 @@
+.mac-table td {
+    position: relative;
+}
+.error-details {
+    background: #fef2f2;
+    border: 1px solid #dc2626;
+    border-left: 3px solid #dc2626;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    position: absolute;
+    z-index: 100;
+    margin-top: 0.25rem;
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    right: 0;
+}
+details summary::-webkit-details-marker {
+    display: none;
+}
+details summary::marker {
+    display: none;
+}
+.error-details-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+.error-details-row:last-child {
+    margin-bottom: 0;
+}
+.error-details-label {
+    font-weight: 600;
+    color: #991b1b;
+    min-width: 120px;
+}
+.error-details-value {
+    color: #7f1d1d;
+}

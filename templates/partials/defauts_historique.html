@@ -1,0 +1,273 @@
+<style>
+.mac-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    max-height: 600px;
+    overflow-y: auto;
+}
+.mac-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.mac-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+}
+.mac-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.mac-table th:hover { background: #e2e8f0; }
+.mac-table th.sortable::after { content: ' ⇅'; color: var(--color-text-muted); font-size: 0.75rem; }
+.mac-table th.sorted-asc::after { content: ' ▲'; color: var(--color-primary); }
+.mac-table th.sorted-desc::after { content: ' ▼'; color: var(--color-primary); }
+.mac-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+.mac-table tbody tr:hover { background: #f9fafb; }
+
+.defauts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.defauts-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+}
+.defauts-card-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.defauts-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+.defauts-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.defauts-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.defauts-dot.en-cours { background: #ef4444; }
+.defauts-dot.resolu { background: #10b981; }
+</style>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+        <div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--color-text); margin: 0;">
+                Historique des Défauts
+            </h3>
+            <div style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                Filtré selon la période et les sites sélectionnés
+            </div>
+        </div>
+    </div>
+
+    <div class="defauts-grid">
+        <div class="defauts-card">
+            <div class="defauts-card-label">Total défauts</div>
+            <div class="defauts-card-value">{{ nb_total }}</div>
+        </div>
+        <div class="defauts-card">
+            <div class="defauts-card-label">En cours</div>
+            <div class="defauts-card-value" style="color: #ef4444;">{{ nb_en_cours }}</div>
+        </div>
+        <div class="defauts-card">
+            <div class="defauts-card-label">Résolus</div>
+            <div class="defauts-card-value" style="color: #10b981;">{{ nb_resolus }}</div>
+        </div>
+        <div class="defauts-card">
+            <div class="defauts-card-label">Durée moyenne</div>
+            <div class="defauts-card-value">{{ '%.1f' % duree_moyenne }}</div>
+            <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.25rem;">jours</div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--color-text);">
+                Top 5 Equipements
+            </h4>
+            {% if top_equipements %}
+            <div class="mac-table-container" style="max-height: 300px;">
+                <table class="mac-table" id="top-eqp-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable">Equipement</th>
+                            <th class="sortable" data-type="number" style="text-align: right;">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_equipements %}
+                        <tr>
+                            <td>{{ item.eqp }}</td>
+                            <td style="text-align: right; font-weight: 600;" data-sort-value="{{ item.count }}">{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="padding: 1rem; color: var(--color-text-muted); text-align: center;">
+                Aucune donnée disponible
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--color-text);">
+                Top 5 Défauts
+            </h4>
+            {% if top_defauts %}
+            <div class="mac-table-container" style="max-height: 300px;">
+                <table class="mac-table" id="top-defauts-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable">Défaut</th>
+                            <th class="sortable" data-type="number" style="text-align: right;">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in top_defauts %}
+                        <tr>
+                            <td>{{ item.defaut }}</td>
+                            <td style="text-align: right; font-weight: 600;" data-sort-value="{{ item.count }}">{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="padding: 1rem; color: var(--color-text-muted); text-align: center;">
+                Aucune donnée disponible
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem;">
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--color-text);">
+            Tableau des défauts
+        </h4>
+        <div class="mac-table-container">
+            <table class="mac-table" id="defauts-table">
+                <thead>
+                    <tr>
+                        <th class="sortable">Site</th>
+                        <th class="sortable">Date début</th>
+                        <th class="sortable">Date fin</th>
+                        <th class="sortable" data-type="number">Durée (jours)</th>
+                        <th class="sortable">Statut</th>
+                        <th class="sortable">Défaut</th>
+                        <th class="sortable">Equipement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rows %}
+                        {% for row in rows %}
+                        <tr>
+                            <td>{{ row.site }}</td>
+                            <td>{{ row.date_debut }}</td>
+                            <td>{{ row.date_fin }}</td>
+                            <td style="text-align: right;" data-sort-value="{{ row.duree }}">{{ row.duree }}</td>
+                            <td>
+                                <span class="defauts-status">
+                                    <span class="defauts-dot {% if row.statut == 'En cours' %}en-cours{% else %}resolu{% endif %}"></span>
+                                    {{ row.statut }}
+                                </span>
+                            </td>
+                            <td>{{ row.defaut }}</td>
+                            <td>{{ row.eqp }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
+                                Aucun défaut trouvé pour la période sélectionnée
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    function initSorting(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        
+        var headers = table.querySelectorAll('th.sortable');
+        var tbody = table.querySelector('tbody');
+        var currentSort = { col: null, dir: 'asc' };
+
+        function parseValue(text, type) {
+            var cleaned = (text || '').toString().replace(/\s+/g, '');
+            if (type === 'number') {
+                return parseFloat(cleaned) || 0;
+            }
+            return cleaned.toLowerCase();
+        }
+
+        function sortTable(colIndex, type) {
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+            var mult = dir === 'asc' ? 1 : -1;
+
+            rows.sort(function(a, b) {
+                var aVal = parseValue(
+                    a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(),
+                    type
+                );
+                var bVal = parseValue(
+                    b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(),
+                    type
+                );
+                return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+            });
+
+            rows.forEach(function(row) { tbody.appendChild(row); });
+
+            headers.forEach(function(h) {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            headers[colIndex].classList.add('sorted-' + dir);
+
+            currentSort = { col: colIndex, dir: dir };
+        }
+
+        headers.forEach(function(th, index) {
+            th.addEventListener('click', function() {
+                sortTable(index, th.dataset.type || 'text');
+            });
+        });
+    }
+
+    initSorting('defauts-table');
+    initSorting('top-eqp-table');
+    initSorting('top-defauts-table');
+})();
+</script>

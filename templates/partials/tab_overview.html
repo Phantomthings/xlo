@@ -1,0 +1,82 @@
+<!-- Tab Overview -->
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card {{ defauts_status }}">
+        <div class="kpi-value">{{ nb_defauts }}</div>
+        <div class="kpi-label">Défaut{{ 's' if nb_defauts != 1 else '' }} en cours</div>
+        <div class="kpi-sublabel">sur {{ nb_sites_defauts }} site{{ 's' if nb_sites_defauts != 1 else '' }}</div>
+    </div>
+    <div class="kpi-card {{ suspicious_status }}" data-nav-tab="suspectes">
+        <div class="kpi-value">{{ nb_suspicious }}</div>
+        <div class="kpi-label">Transactions &lt;1 kWh</div>
+    </div>
+    <div class="kpi-card {{ multi_status }}" data-nav-tab="tentatives">
+        <div class="kpi-value">{{ nb_multi }}</div>
+        <div class="kpi-label">Multi-tentatives</div>
+    </div>
+    <div class="kpi-card {{ alertes_status }}" data-nav-tab="alertes">
+        <div class="kpi-value">{{ nb_alertes }}</div>
+        <div class="kpi-label">Alertes détectées</div>
+    </div>
+</div>
+
+<!-- Sites à surveiller -->
+{% if sites_recent %}
+<div class="watch-card">
+    <div class="watch-card-title">🔍 {{ sites_recent|length }} site{{ 's' if sites_recent|length > 1 else '' }} à surveiller (défauts &lt; 24h)</div>
+    <div class="watch-card-sites">{{ sites_recent|join(', ') }}</div>
+</div>
+{% endif %}
+
+<!-- Défauts par site -->
+{% if defauts_par_site %}
+<div class="section-header">Défauts actifs par site</div>
+{% for site_name, site_data in defauts_par_site.items() %}
+<details class="site-expander">
+    <summary>
+        <span>{{ site_name }}</span>
+        <span style="background:#f1f5f9; padding:0.25rem 0.75rem; border-radius:20px; font-size:0.85rem;">
+            {{ site_data.count }} défaut{{ 's' if site_data.count > 1 else '' }}
+        </span>
+    </summary>
+    <div class="site-content">
+        {% for equip in site_data.equipements %}
+        <div class="equipment-header"> {{ equip.label }}</div>
+        <div class="defects-grid">
+            {% for d in equip.defects %}
+            <div class="defect-card {{ d.card_class }}">
+                <div class="defect-name">⚠️ {{ d.defaut }}</div>
+                <div class="defect-eqp"> {{ d.eqp }}</div>
+                <div class="defect-duration">Depuis {{ d.depuis_jours }} jour{{ 's' if d.depuis_jours != 1 else '' }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</details>
+{% endfor %}
+{% endif %}
+
+<div class="divider"></div>
+
+<!-- Top échecs -->
+<div class="section-header">⚠️ Top 10 Sites - Nombre d'Échecs</div>
+{% if top_sites_echecs %}
+<div class="bar-chart">
+    {% for item in top_sites_echecs %}
+    <div class="bar-row">
+        <span class="bar-label">{{ item.site }}</span>
+        <div class="bar-container">
+            <div class="bar bar-danger" style="width: {{ item.percent }}%;"></div>
+        </div>
+        <span class="bar-value text-danger">{{ item.nok }} <span style="color:#94a3b8; font-weight:normal;">/ {{ item.total }}</span></span>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">📊</div>
+    <div>Aucune donnée</div>
+</div>
+{% endif %}

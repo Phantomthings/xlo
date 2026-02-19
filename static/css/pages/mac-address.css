@@ -1,0 +1,188 @@
+    .mac-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .mac-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-text);
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--color-border);
+    }
+    .mac-search-form {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        margin-bottom: 1rem;
+    }
+    .mac-input-group {
+        flex: 1;
+    }
+    .mac-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+    }
+    .mac-input {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        font-family: monospace;
+        transition: border-color 0.15s;
+    }
+    .mac-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    .mac-btn {
+        padding: 0.6rem 1.5rem;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        white-space: nowrap;
+    }
+    .mac-btn:hover {
+        background: #b91c1c;
+    }
+    .mac-hint {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-top: 0.5rem;
+    }
+    .mac-table-container {
+        overflow-x: auto;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .mac-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .mac-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    }
+    .mac-table th {
+        padding: 0.85rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--color-text);
+        border-bottom: 2px solid var(--color-border);
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .mac-table th:hover {
+        background: #e2e8f0;
+    }
+    .mac-table th.sortable::after {
+        content: ' ⇅';
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+    }
+    .mac-table th.sorted-asc::after {
+        content: ' ▲';
+        color: var(--color-primary);
+    }
+    .mac-table th.sorted-desc::after {
+        content: ' ▼';
+        color: var(--color-primary);
+    }
+    .mac-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .mac-table tbody tr:hover {
+        background: #f9fafb;
+    }
+    .mac-table tbody tr.clickable {
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .mac-table tbody tr.clickable:hover {
+        background: #e0f2fe;
+    }
+    .mac-rank {
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .mac-rank.gold { color: #f59e0b; }
+    .mac-rank.silver { color: #9ca3af; }
+    .mac-rank.bronze { color: #d97706; }
+    .mac-code {
+        font-family: 'Courier New', monospace;
+        font-weight: 500;
+        color: var(--color-text);
+    }
+    .mac-number {
+        text-align: right;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+    .mac-rate {
+        text-align: right;
+        font-weight: 600;
+    }
+    .mac-rate.high { color: #10b981; }
+    .mac-rate.medium { color: #f59e0b; }
+    .mac-rate.low { color: #ef4444; }
+    .mac-status {
+        display: inline-block;
+        padding: 0.25rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .mac-status.ok {
+        background: #dcfce7;
+        color: #15803d;
+    }
+    .mac-status.nok {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+    .mac-link {
+        color: var(--color-primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .mac-link:hover {
+        text-decoration: underline;
+    }
+    .mac-note {
+        margin-top: 1rem;
+        padding: 0.75rem 1rem;
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        color: #78350f;
+    }
+    .mac-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+        margin: 2rem 0;
+    }
+    #mac-search-results {
+        margin-top: 1.5rem;
+    }

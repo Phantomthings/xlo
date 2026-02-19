@@ -1,0 +1,1817 @@
+<div class="panel">
+    <div class="panel-header">
+        <div>
+            <div class="panel-title">📋 Tableau charges</div>
+            <div class="panel-subtitle">Liste chronologique de toutes les charges</div>
+        </div>
+        {% if rows %}
+        <div class="pill pill-neutral">{{ total }} charge{{ 's' if total > 1 else '' }}</div>
+        {% endif %}
+    </div>
+
+    <style>
+        .panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .panel-title {
+            font-weight: 700;
+            color: var(--color-text);
+            font-size: 1.05rem;
+        }
+        .panel-subtitle {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid var(--color-border);
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+        .pill-neutral {
+            background: var(--color-info-light);
+            border-color: rgba(59, 130, 246, 0.2);
+            color: var(--color-info);
+        }
+        .recap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .recap-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+        .recap-card-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .recap-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+        .table-wrapper-decharge {
+            overflow: auto;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            max-height: 70vh;
+            min-height: 400px;
+        }
+        .decharge-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        .error-details {
+            background: #fef2f2;
+            border: 1px solid #dc2626;
+            border-left: 3px solid #dc2626;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            position: absolute;
+            z-index: 100;
+            margin-top: 0.25rem;
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            right: 0;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        details summary::marker {
+            display: none;
+        }
+        .decharge-table td {
+            position: relative;
+        }
+        .error-details-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .error-details-row:last-child {
+            margin-bottom: 0;
+        }
+        .error-details-label {
+            font-weight: 600;
+            color: #991b1b;
+            min-width: 120px;
+        }
+        .error-details-value {
+            color: #7f1d1d;
+        }
+        .decharge-table th {
+            position: sticky;
+            top: 0;
+            background: var(--color-surface);
+            text-align: left;
+            padding: 0.55rem;
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            border-bottom: 1px solid var(--color-border);
+            white-space: nowrap;
+        }
+        .decharge-table thead th[data-sortable] {
+            cursor: pointer;
+        }
+        .decharge-table th.sorted-asc::after {
+            content: ' ▲';
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        .decharge-table th.sorted-desc::after {
+            content: ' ▼';
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        .decharge-table td {
+            padding: 0.55rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9rem;
+            color: var(--color-text);
+            vertical-align: middle;
+        }
+        .decharge-table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        .muted-text { color: var(--color-text-muted); }
+        .link-cell a {
+            color: var(--color-info);
+            text-decoration: none;
+        }
+        .link-cell a:hover { text-decoration: underline; }
+        .super-filters {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .super-filters-title {
+            font-weight: 700;
+            color: var(--color-text);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .super-filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+        .super-filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .super-filter-item-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+        .super-filter-operator {
+            flex: 0 0 60px;
+        }
+        .super-filter-value {
+            flex: 1;
+        }
+        .super-filters-section {
+            margin-bottom: 1.5rem;
+        }
+        .super-filters-section-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--color-border);
+        }
+        .super-filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+        }
+        .super-filter-input {
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+        .super-filter-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .super-filter-select {
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+        .super-filter-select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+        .reset-filters-btn {
+            padding: 0.5rem 1rem;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .reset-filters-btn:hover {
+            background: var(--color-bg);
+            border-color: var(--color-primary);
+        }
+        .filter-count {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+            margin-top: 0.5rem;
+        }
+        /* Tags style (comme dans index.html) */
+        .tags-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.5rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            min-height: 40px;
+            max-height: 100px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .tag.inactive {
+            background: #e2e8f0;
+            color: #475569;
+            border-color: #cbd5e1;
+            opacity: 0.85;
+        }
+        .tag-remove {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            opacity: 0.7;
+        }
+        .tag-remove:hover { opacity: 1; }
+        /* Period buttons */
+        .period-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            transition: all 0.15s;
+        }
+        .btn:hover { background: var(--color-bg); }
+        .btn.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+        /* Month selector */
+        .month-selector {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .month-radios {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+        .month-radio {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.3rem 0.5rem;
+            background: var(--color-bg);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .month-radio:hover { background: var(--color-border); }
+        .month-radio input { accent-color: var(--color-primary); }
+        .select-input {
+            padding: 0.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+        .summary {
+            padding: 0.75rem 1rem;
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: var(--radius-sm);
+            color: #1e40af;
+            font-size: 0.9rem;
+        }
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .filter-row-errors {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .filter-row-errors { grid-template-columns: 1fr; }
+        }
+    </style>
+
+    <!-- Super filtres -->
+    <div class="super-filters">
+        <div class="super-filters-title">
+            <span>🔍 Super filtres</span>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="reset-filters-btn" id="reset-filters-btn">Réinitialiser</button>
+                <button class="apply-filters-btn" id="apply-filters-btn" style="background: var(--color-primary); color: white; border-color: var(--color-primary);">Appliquer filtres</button>
+            </div>
+        </div>
+        {% if debug_info and debug_info.get('super_filters_applied') %}
+        <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem;">
+            Debug: {{ debug_info.super_filters_applied.rows_before }} → {{ debug_info.super_filters_applied.rows_after }} lignes
+            (Filtres: {{ debug_info.super_filters_applied.filters }})
+        </div>
+        {% endif %}
+        {% if super_filters and super_filters.get('energy_max') %}
+        {% set energy_op_display = super_filters.get('energy_operator', '<=') %}
+        {% if energy_op_display == '%3E%3D' %}{% set energy_op_display = '>=' %}{% endif %}
+        <div style="font-size: 0.75rem; color: #3b82f6; margin-bottom: 0.5rem; padding: 0.5rem; background: #eff6ff; border-radius: 0.25rem;">
+            🔍 Filtre énergie actif: {{ energy_op_display }} {{ super_filters.get('energy_max') }} Kwh
+        </div>
+        {% endif %}
+        <form method="get" id="super-filters-form" onsubmit="event.preventDefault(); applySuperFilters();">
+            <!-- Section 0: Période (en haut) -->
+            <div class="super-filters-section">
+                <div class="super-filters-section-title">📅 Période d'analyse</div>
+                <div class="filter-row period-btns" id="period-btns-container" style="margin-bottom: 1rem;">
+                    <button type="button" class="btn period-btn" data-mode="focus_jours">Focus Jour</button>
+                    <button type="button" class="btn period-btn" data-mode="mois">Focus Mois</button>
+                    <button type="button" class="btn period-btn" data-mode="j-1">J-1 (Hier)</button>
+                    <button type="button" class="btn period-btn active" data-mode="semaine-1">Semaine -1</button>
+                    <button type="button" class="btn period-btn" data-mode="toute_periode">Toute la période</button>
+                    <button type="button" class="btn period-btn" data-mode="manuel">Sélection manuelle</button>
+                </div>
+                
+                <!-- Month selector -->
+                <div class="filter-row month-selector" id="month-selector" style="display: none;">
+                    <div>
+                        <div class="filter-label">Année</div>
+                        <select class="select-input" id="year-select" onchange="updatePeriodDates()">
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="filter-label">Mois</div>
+                        <div class="month-radios" id="month-radios"></div>
+                    </div>
+                </div>
+                
+                <!-- Day selector -->
+                <div class="filter-row" id="day-selector" style="display:none;">
+                    <div>
+                        <div class="filter-label">Sélectionner une date</div>
+                        <input type="date" class="select-input" id="day-input" onchange="updatePeriodDates()">
+                    </div>
+                </div>
+                
+                <!-- Manual date range selector -->
+                <div class="filter-row" id="manual-date-selector" style="display:none;">
+                    <div>
+                        <div class="filter-label">Date de début</div>
+                        <input type="date" class="select-input" id="date-debut-input" name="date_debut" onchange="updatePeriodDates()" 
+                               value="{{ super_filters.date_debut if super_filters and super_filters.date_debut else '' }}">
+                    </div>
+                    <div>
+                        <div class="filter-label">Date de fin</div>
+                        <input type="date" class="select-input" id="date-fin-input" name="date_fin" onchange="updatePeriodDates()"
+                               value="{{ super_filters.date_fin if super_filters and super_filters.date_fin else '' }}">
+                    </div>
+                </div>
+                
+                <!-- Period summary -->
+                <div class="summary" id="period-summary" style="margin-top: 1rem;">📅 Semaine -1</div>
+                
+                <input type="hidden" name="period_type" id="period-type-hidden" value="{{ super_filters.period_type if super_filters and super_filters.period_type else 'semaine-1' }}">
+            </div>
+            
+            <!-- Section 1: Filtres de base -->
+            <div class="super-filters-section">
+                <div class="super-filters-section-title">📋 Filtres de base</div>
+                
+                <!-- Sites (style tags) -->
+                <div class="filter-row" style="margin-bottom: 1rem;">
+                    <button type="button" class="btn" onclick="toggleAllSitesTableau()" id="btn-all-sites-tableau">☑ Tous les sites</button>
+                    <div class="tags-box" id="sites-tags-tableau"></div>
+                </div>
+                
+                <div class="super-filters-grid">
+                    <!-- Type de charge -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">Type de charge</label>
+                        <select name="charge_type" class="super-filter-select">
+                            <option value="Toutes" {% if not super_filters or super_filters.charge_type == 'Toutes' %}selected{% endif %}>Toutes</option>
+                            <option value="OK" {% if super_filters and super_filters.charge_type == 'OK' %}selected{% endif %}>OK</option>
+                            <option value="Non OK" {% if super_filters and super_filters.charge_type == 'Non OK' %}selected{% endif %}>Non OK</option>
+                        </select>
+                    </div>
+                    
+                    <!-- PDC -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">PDC (ex: 1,2,3)</label>
+                        <input type="text" name="pdc_filter" class="super-filter-input" 
+                               value="{{ super_filters.pdc_filter if super_filters else '' }}"
+                               placeholder="Ex: 1,2,3">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section: Filtres Erreur -->
+            <div class="super-filters-section">
+                <div class="super-filters-section-title">⚠️ Filtres Erreur</div>
+                <div class="filter-row-errors">
+                    <div>
+                        <div class="filter-label">Type d'erreur</div>
+                        <div class="tags-box" id="error-type-tags-tableau"></div>
+                    </div>
+                    <div>
+                        <div class="filter-label">Moment d'erreur</div>
+                        <div class="tags-box" id="moment-tags-tableau"></div>
+                    </div>
+                    <div>
+                        <div class="filter-label">Moment avancé</div>
+                        <div class="tags-box" id="moment-avancee-tags-tableau"></div>
+                    </div>
+                </div>
+                <input type="hidden" name="error_types" id="error-types-hidden" value="{{ super_filters.error_types if super_filters and super_filters.error_types else '' }}">
+                <input type="hidden" name="moments" id="moments-hidden" value="{{ super_filters.moments if super_filters and super_filters.moments else '' }}">
+                <input type="hidden" name="moment_avancee" id="moment-avancee-hidden" value="{{ super_filters.moment_avancee if super_filters and super_filters.moment_avancee else '' }}">
+            </div>
+            
+            <!-- Section 2: Filtres EV -->
+            <div class="super-filters-section">
+                <div class="super-filters-section-title">🔌 Filtres EV</div>
+                <div class="super-filters-grid">
+                    <!-- 1. 800V -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">800V</label>
+                        <select name="voltage_800v" class="super-filter-select">
+                            <option value="Tous" {% if not super_filters or super_filters.voltage_800v == 'Tous' %}selected{% endif %}>Tous</option>
+                            <option value="800V" {% if super_filters and super_filters.voltage_800v == '800V' %}selected{% endif %}>800V</option>
+                            <option value="Non 800V" {% if super_filters and super_filters.voltage_800v == 'Non 800V' %}selected{% endif %}>Non 800V</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 2. Type de véhicule -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">Type de véhicule</label>
+                        <select name="vehicle_type" class="super-filter-select">
+                            <option value="Tous" {% if not super_filters or super_filters.vehicle_type == 'Tous' %}selected{% endif %}>Tous</option>
+                            {% for vehicle in vehicle_options %}
+                            <option value="{{ vehicle }}" {% if super_filters and super_filters.vehicle_type == vehicle %}selected{% endif %}>{{ vehicle }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- 3. MAC Address -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">🔌 MAC Address</label>
+                        <input type="text" name="mac_address_filter" class="super-filter-input" 
+                               value="{{ super_filters.mac_address_filter if super_filters else '' }}"
+                               placeholder="Ex: AA:BB:CC:DD:EE:FF">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section 2: Filtres numériques -->
+            <div class="super-filters-section">
+                <div class="super-filters-section-title">🔢 Filtres numériques</div>
+                <div class="super-filters-grid">
+                    <!-- Durée -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">⏱️ Durée (min)</label>
+                        <div class="super-filter-item-group">
+                            <select name="duration_operator" class="super-filter-select super-filter-operator">
+                                <option value=">=" {% if super_filters and super_filters.duration_operator == '>=' %}selected{% endif %}>≥</option>
+                                <option value="<=" {% if super_filters and super_filters.duration_operator == '<=' %}selected{% endif %}>≤</option>
+                            </select>
+                            <input type="number" name="duration" class="super-filter-input super-filter-value" 
+                                   step="0.1" min="0" 
+                                   value="{{ super_filters.duration if super_filters else '' }}"
+                                   placeholder="Ex: 30.0">
+                        </div>
+                    </div>
+                    
+                    <!-- Énergie -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">⚡ Énergie (Kwh)</label>
+                        <div class="super-filter-item-group">
+                            <select name="energy_operator" class="super-filter-select super-filter-operator" id="energy-operator-select">
+                                {% set energy_op = super_filters.get('energy_operator', '<=') if super_filters else '<=' %}
+                                {% if energy_op == '%3E%3D' %}{% set energy_op = '>=' %}{% endif %}
+                                <option value=">=" {% if energy_op == '>=' %}selected{% endif %}>≥</option>
+                                <option value="<=" {% if energy_op == '<=' %}selected{% endif %}>≤</option>
+                            </select>
+                            <input type="number" name="energy_max" class="super-filter-input super-filter-value" 
+                                   step="0.1" min="0" 
+                                   value="{{ super_filters.energy_max if super_filters else '' }}"
+                                   placeholder="Ex: 50.0">
+                        </div>
+                    </div>
+                    
+                    <!-- Puissance -->
+                    <div class="super-filter-item">
+                        <label class="super-filter-label">🔌 Puissance max (Kw)</label>
+                        <div class="super-filter-item-group">
+                            <select name="pmax_operator" class="super-filter-select super-filter-operator">
+                                <option value=">=" {% if super_filters and super_filters.pmax_operator == '>=' %}selected{% elif not super_filters or not super_filters.pmax_operator %}selected{% endif %}>≥</option>
+                                <option value="<=" {% if super_filters and super_filters.pmax_operator == '<=' %}selected{% endif %}>≤</option>
+                            </select>
+                            <input type="number" name="pmax_min" class="super-filter-input super-filter-value" 
+                                   step="0.1" min="0" 
+                                   value="{{ super_filters.pmax_min if super_filters else '' }}"
+                                   placeholder="Ex: 10.0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if rows %}
+            <div class="filter-count">
+                📊 {{ total }} charge{{ 's' if total > 1 else '' }} affichée{{ 's' if total > 1 else '' }}
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <script>
+        // State pour les tags - initialiser avec des valeurs par défaut
+        // Utiliser window.tableauState pour éviter les redéclarations lors des swaps HTMX
+        if (typeof window.tableauState === 'undefined') {
+            window.tableauState = {
+                allSites: {{ site_options|tojson if site_options else '[]' }},
+                selectedSites: {{ (super_filters.sites.split(',') if super_filters and super_filters.sites else (site_options if site_options else []))|tojson }},
+                allErrorTypes: {{ error_type_options|tojson if error_type_options else '[]' }},
+                selectedErrorTypes: {{ (super_filters.error_types.split(',') if super_filters and super_filters.error_types else [])|tojson }},
+                allMoments: {{ moment_options|tojson if moment_options else '[]' }},
+                selectedMoments: {{ (super_filters.moments.split(',') if super_filters and super_filters.moments else [])|tojson }},
+                allMomentAvancee: {{ moment_avancee_options|tojson if moment_avancee_options else '[]' }},
+                selectedMomentAvancee: {{ (super_filters.moment_avancee.split(',') if super_filters and super_filters.moment_avancee else [])|tojson }},
+                periodMode: '{{ super_filters.period_type if super_filters and super_filters.period_type else "semaine-1" }}',
+                dateDebut: '',
+                dateFin: ''
+            };
+        } else {
+            // Mettre à jour les valeurs depuis les nouveaux paramètres
+            window.tableauState.allSites = {{ site_options|tojson if site_options else '[]' }};
+            window.tableauState.allErrorTypes = {{ error_type_options|tojson if error_type_options else '[]' }};
+            window.tableauState.allMoments = {{ moment_options|tojson if moment_options else '[]' }};
+            window.tableauState.allMomentAvancee = {{ moment_avancee_options|tojson if moment_avancee_options else '[]' }};
+            window.tableauState.periodMode = '{{ super_filters.period_type if super_filters and super_filters.period_type else "semaine-1" }}';
+            
+            // Mettre à jour les sélections seulement si elles sont dans les paramètres
+            {% if super_filters and super_filters.sites %}
+            window.tableauState.selectedSites = {{ super_filters.sites.split(',')|tojson }};
+            {% else %}
+            if (window.tableauState.selectedSites.length === 0 && window.tableauState.allSites.length > 0) {
+                window.tableauState.selectedSites = [...window.tableauState.allSites];
+            }
+            {% endif %}
+            {% if super_filters and super_filters.error_types %}
+            window.tableauState.selectedErrorTypes = {{ super_filters.error_types.split(',')|tojson }};
+            {% else %}
+            window.tableauState.selectedErrorTypes = [];
+            {% endif %}
+            {% if super_filters and super_filters.moments %}
+            window.tableauState.selectedMoments = {{ super_filters.moments.split(',')|tojson }};
+            {% else %}
+            window.tableauState.selectedMoments = [];
+            {% endif %}
+            {% if super_filters and super_filters.moment_avancee %}
+            window.tableauState.selectedMomentAvancee = {{ super_filters.moment_avancee.split(',')|tojson }};
+            {% else %}
+            window.tableauState.selectedMomentAvancee = [];
+            {% endif %}
+            
+        }
+        
+        // Alias pour faciliter l'utilisation
+        const tableauState = window.tableauState;
+        
+        // S'assurer que selectedSites contient tous les sites par défaut si vide
+        if (tableauState.selectedSites.length === 0 && tableauState.allSites.length > 0) {
+            tableauState.selectedSites = [...tableauState.allSites];
+        }
+        
+        // Initialiser les tags
+        function renderSitesTags() {
+            const container = document.getElementById('sites-tags-tableau');
+            if (!container) {
+                console.error('sites-tags-tableau container not found');
+                return;
+            }
+            if (!tableauState.allSites || tableauState.allSites.length === 0) {
+                container.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.85rem;">Aucun site disponible</span>';
+                return;
+            }
+            container.innerHTML = tableauState.allSites.map(s => {
+                const isSelected = tableauState.selectedSites.includes(s);
+                // Échapper les guillemets pour éviter les erreurs JS
+                const escapedSite = String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<span class="tag ${isSelected ? '' : 'inactive'}" onclick="toggleSiteTableau('${escapedSite}')">${s} <button class="tag-remove" onclick="event.stopPropagation(); toggleSiteTableau('${escapedSite}')">${isSelected ? '×' : '+'}</button></span>`;
+            }).join('');
+            const btn = document.getElementById('btn-all-sites-tableau');
+            if (btn) {
+                btn.textContent = tableauState.selectedSites.length === tableauState.allSites.length ? '☑ Tous les sites' : '☐ Tous les sites';
+            }
+        }
+        
+        window.toggleAllSitesTableau = function() {
+            tableauState.selectedSites = tableauState.selectedSites.length === tableauState.allSites.length ? [] : [...tableauState.allSites];
+            renderSitesTags();
+        };
+        
+        window.toggleSiteTableau = function(site) {
+            if (tableauState.selectedSites.includes(site)) {
+                tableauState.selectedSites = tableauState.selectedSites.filter(s => s !== site);
+            } else {
+                tableauState.selectedSites = [...tableauState.selectedSites, site].sort((a, b) => {
+                    const idxA = tableauState.allSites.indexOf(a);
+                    const idxB = tableauState.allSites.indexOf(b);
+                    return idxA - idxB;
+                });
+            }
+            renderSitesTags();
+        };
+        
+        window.renderErrorTypesTags = function() {
+            const container = document.getElementById('error-type-tags-tableau');
+            if (!container) {
+                console.error('error-type-tags-tableau container not found');
+                return;
+            }
+            
+            if (!tableauState.allErrorTypes || tableauState.allErrorTypes.length === 0) {
+                container.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.85rem;">Aucun type d\'erreur disponible</span>';
+                return;
+            }
+            
+            container.innerHTML = tableauState.allErrorTypes.map(t => {
+                const isSelected = tableauState.selectedErrorTypes.includes(t);
+                const label = t.length > 18 ? t.slice(0, 18) + '...' : t;
+                const escapedType = String(t).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<span class="tag ${isSelected ? '' : 'inactive'}" onclick="toggleErrorTypeTableau('${escapedType}')">${label} <button class="tag-remove" onclick="event.stopPropagation(); toggleErrorTypeTableau('${escapedType}')">${isSelected ? '×' : '+'}</button></span>`;
+            }).join('');
+            
+            const hiddenInput = document.getElementById('error-types-hidden');
+            if (hiddenInput) {
+                hiddenInput.value = tableauState.selectedErrorTypes.join(',');
+            }
+        };
+        
+        window.toggleErrorTypeTableau = function(type) {
+            if (tableauState.selectedErrorTypes.includes(type)) {
+                tableauState.selectedErrorTypes = tableauState.selectedErrorTypes.filter(t => t !== type);
+            } else {
+                tableauState.selectedErrorTypes = [...tableauState.selectedErrorTypes, type];
+            }
+            renderErrorTypesTags();
+        };
+        
+        window.renderMomentsTags = function() {
+            const container = document.getElementById('moment-tags-tableau');
+            if (!container) {
+                console.error('moment-tags-tableau container not found');
+                return;
+            }
+            
+            if (!tableauState.allMoments || tableauState.allMoments.length === 0) {
+                container.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.85rem;">Aucun moment disponible</span>';
+                return;
+            }
+            
+            container.innerHTML = tableauState.allMoments.map(m => {
+                const isSelected = tableauState.selectedMoments.includes(m);
+                const escapedMoment = String(m).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<span class="tag ${isSelected ? '' : 'inactive'}" onclick="toggleMomentTableau('${escapedMoment}')">${m} <button class="tag-remove" onclick="event.stopPropagation(); toggleMomentTableau('${escapedMoment}')">${isSelected ? '×' : '+'}</button></span>`;
+            }).join('');
+            
+            const hiddenInput = document.getElementById('moments-hidden');
+            if (hiddenInput) {
+                hiddenInput.value = tableauState.selectedMoments.join(',');
+            }
+        };
+        
+        window.toggleMomentTableau = function(moment) {
+            if (tableauState.selectedMoments.includes(moment)) {
+                tableauState.selectedMoments = tableauState.selectedMoments.filter(m => m !== moment);
+            } else {
+                tableauState.selectedMoments = [...tableauState.selectedMoments, moment];
+            }
+            renderMomentsTags();
+        };
+        
+        window.renderMomentAvanceeTags = function() {
+            const container = document.getElementById('moment-avancee-tags-tableau');
+            if (!container) {
+                console.error('moment-avancee-tags-tableau container not found');
+                return;
+            }
+            
+            if (!tableauState.allMomentAvancee || tableauState.allMomentAvancee.length === 0) {
+                container.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.85rem;">Aucun moment avancé disponible</span>';
+                return;
+            }
+            
+            container.innerHTML = tableauState.allMomentAvancee.map(m => {
+                const isSelected = tableauState.selectedMomentAvancee.includes(m);
+                const escapedMoment = String(m).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `<span class="tag ${isSelected ? '' : 'inactive'}" onclick="toggleMomentAvanceeTableau('${escapedMoment}')">${m} <button class="tag-remove" onclick="event.stopPropagation(); toggleMomentAvanceeTableau('${escapedMoment}')">${isSelected ? '×' : '+'}</button></span>`;
+            }).join('');
+            
+            const hiddenInput = document.getElementById('moment-avancee-hidden');
+            if (hiddenInput) {
+                hiddenInput.value = tableauState.selectedMomentAvancee.join(',');
+            }
+        };
+        
+        window.toggleMomentAvanceeTableau = function(moment) {
+            if (tableauState.selectedMomentAvancee.includes(moment)) {
+                tableauState.selectedMomentAvancee = tableauState.selectedMomentAvancee.filter(m => m !== moment);
+            } else {
+                tableauState.selectedMomentAvancee = [...tableauState.selectedMomentAvancee, moment];
+            }
+            renderMomentAvanceeTags();
+        };
+        
+        // Gérer la période
+        window.setPeriodMode = function(mode) {
+            console.log('setPeriodMode called with mode:', mode);
+            if (!mode) {
+                console.error('setPeriodMode: mode is required');
+                return;
+            }
+            tableauState.periodMode = mode;
+            
+            // Mettre à jour les boutons actifs - utiliser period-btn au lieu de .btn
+            const periodBtns = document.querySelectorAll('.period-btn');
+            periodBtns.forEach(b => {
+                if (b.dataset.mode === mode) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+            
+            // Afficher/masquer les sélecteurs selon le mode
+            const monthSelector = document.getElementById('month-selector');
+            const daySelector = document.getElementById('day-selector');
+            const manualSelector = document.getElementById('manual-date-selector');
+            const periodTypeHidden = document.getElementById('period-type-hidden');
+            
+            if (monthSelector) monthSelector.style.display = mode === 'mois' ? 'flex' : 'none';
+            if (daySelector) daySelector.style.display = mode === 'focus_jours' ? 'block' : 'none';
+            if (manualSelector) manualSelector.style.display = mode === 'manuel' ? 'flex' : 'none';
+            if (periodTypeHidden) periodTypeHidden.value = mode;
+            
+            if (mode === 'manuel') {
+                const dateDebutInput = document.getElementById('date-debut-input');
+                const dateFinInput = document.getElementById('date-fin-input');
+                if (dateDebutInput && !dateDebutInput.value) {
+                    const today = new Date();
+                    dateDebutInput.value = fmtDate(today);
+                }
+                if (dateFinInput && !dateFinInput.value) {
+                    const today = new Date();
+                    dateFinInput.value = fmtDate(today);
+                }
+            }
+            
+            updatePeriodDates();
+        };
+        
+        window.fmtDate = function(d) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+        
+        window.updatePeriodDates = function() {
+            const today = new Date();
+            const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+            let dateDebut = '', dateFin = '';
+            
+            switch(tableauState.periodMode) {
+                case 'focus_jours':
+                    const dayInput = document.getElementById('day-input');
+                    const day = dayInput ? dayInput.value : fmtDate(today);
+                    dateDebut = dateFin = day;
+                    break;
+                case 'mois':
+                    const year = document.getElementById('year-select')?.value || today.getFullYear();
+                    const month = document.querySelector('input[name="month"]:checked')?.value || today.getMonth()+1;
+                    const first = new Date(year, month-1, 1);
+                    const last = new Date(year, month, 0);
+                    dateDebut = fmtDate(first);
+                    dateFin = fmtDate(last);
+                    break;
+                case 'j-1':
+                    dateDebut = dateFin = fmtDate(yesterday);
+                    break;
+                case 'semaine-1':
+                    const week = new Date(yesterday); week.setDate(week.getDate() - 6);
+                    dateDebut = fmtDate(week);
+                    dateFin = fmtDate(yesterday);
+                    break;
+                case 'toute_periode':
+                    dateDebut = dateFin = '';
+                    break;
+                case 'manuel':
+                    const dateDebutInput = document.getElementById('date-debut-input');
+                    const dateFinInput = document.getElementById('date-fin-input');
+                    dateDebut = dateDebutInput ? dateDebutInput.value : fmtDate(today);
+                    dateFin = dateFinInput ? dateFinInput.value : fmtDate(today);
+                    break;
+            }
+            
+            // Stocker dans le state
+            tableauState.dateDebut = dateDebut;
+            tableauState.dateFin = dateFin;
+            
+            // Mettre à jour les champs visibles si nécessaire
+            const dateDebutInput = document.getElementById('date-debut-input');
+            const dateFinInput = document.getElementById('date-fin-input');
+            if (dateDebutInput && tableauState.periodMode === 'manuel') {
+                dateDebutInput.value = dateDebut;
+            }
+            if (dateFinInput && tableauState.periodMode === 'manuel') {
+                dateFinInput.value = dateFin;
+            }
+            
+            // Mettre à jour le résumé
+            updatePeriodSummary(dateDebut, dateFin);
+        };
+        
+        window.updatePeriodSummary = function(dateDebut, dateFin) {
+            const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            const year = document.getElementById('year-select')?.value || new Date().getFullYear();
+            const month = document.querySelector('input[name="month"]:checked')?.value || new Date().getMonth()+1;
+            
+            let text = '';
+            switch(tableauState.periodMode) {
+                case 'focus_jours': text = `📅 Focus Jour : ${dateDebut}`; break;
+                case 'mois': text = `📅 Mois complet : ${monthNames[month-1]} ${year}`; break;
+                case 'j-1': text = `📅 J-1 (hier) : ${dateDebut}`; break;
+                case 'semaine-1': text = `📅 Semaine -1 : ${dateDebut} → ${dateFin}`; break;
+                case 'toute_periode': text = `📅 Toute la période`; break;
+                case 'manuel': text = `📅 Sélection manuelle : ${dateDebut} → ${dateFin}`; break;
+            }
+            const summaryEl = document.getElementById('period-summary');
+            if (summaryEl) summaryEl.textContent = text;
+        };
+        
+        // Initialiser les month radios (déclarer months une seule fois globalement)
+        (function() {
+            if (typeof window.tableauMonths === 'undefined') {
+                window.tableauMonths = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+            }
+            const monthRadiosEl = document.getElementById('month-radios');
+            if (monthRadiosEl) {
+                monthRadiosEl.innerHTML = window.tableauMonths.map((m, i) => 
+                    `<label class="month-radio"><input type="radio" name="month" value="${i+1}" ${i+1 === new Date().getMonth()+1 ? 'checked' : ''} onchange="updatePeriodDates()"> ${m}</label>`
+                ).join('');
+            }
+        })();
+        
+        // Fonction d'initialisation complète
+        function initTableauFilters() {
+            console.log('Initializing tableau filters...', tableauState);
+            renderSitesTags();
+            renderErrorTypesTags();
+            renderMomentsTags();
+            renderMomentAvanceeTags();
+            
+            // Attacher les événements aux boutons de période
+            const periodBtnsContainer = document.getElementById('period-btns-container');
+            if (periodBtnsContainer) {
+                const periodBtns = periodBtnsContainer.querySelectorAll('.period-btn');
+                periodBtns.forEach(btn => {
+                    // Retirer les anciens listeners en clonant
+                    const newBtn = btn.cloneNode(true);
+                    btn.parentNode.replaceChild(newBtn, btn);
+                    newBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const mode = newBtn.dataset.mode;
+                        if (mode && typeof setPeriodMode === 'function') {
+                            console.log('Setting period mode to:', mode);
+                            setPeriodMode(mode);
+                        } else {
+                            console.error('setPeriodMode not available or mode invalid:', mode);
+                        }
+                    });
+                });
+            } else {
+                console.error('period-btns-container not found');
+            }
+            
+            setPeriodMode(tableauState.periodMode);
+            updatePeriodDates();
+        }
+        
+        // Initialiser au chargement DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTableauFilters);
+        } else {
+            // DOM déjà chargé
+            initTableauFilters();
+        }
+        
+        // Initialiser aussi après un swap HTMX
+        if (typeof document.body !== 'undefined') {
+            document.body.addEventListener('htmx:afterSwap', function(event) {
+                if (event.target && (event.target.id === 'tab-content' || event.target.closest('#tab-content') || event.target.closest('.super-filters'))) {
+                    console.log('HTMX swap detected, reinitializing filters...');
+                    setTimeout(initTableauFilters, 100); // Petit délai pour s'assurer que le DOM est prêt
+                }
+            });
+        }
+        
+        // Exposer la fonction globalement
+        window.applySuperFilters = function() {
+            const form = document.getElementById('super-filters-form');
+            if (!form) {
+                console.error('Form super-filters-form not found!');
+                return;
+            }
+            
+            const params = new URLSearchParams();
+            
+            // Préserver visible_columns depuis l'URL actuelle (IMPORTANT: faire ça en premier)
+            const currentUrl = new URL(window.location.href);
+            const currentParams = new URLSearchParams(currentUrl.search);
+            let visibleColumns = currentParams.get('visible_columns');
+            
+            // Si visible_columns n'est pas dans l'URL, essayer de le récupérer depuis les checkboxes
+            if (!visibleColumns) {
+                const checkboxes = document.querySelectorAll('.column-checkbox:checked');
+                const selectedColumns = [];
+                const essentialColumns = ['Site', 'PDC', 'Datetime start', 'is_ok', 'Lien', 'Actions', 'Erreur'];
+                selectedColumns.push(...essentialColumns);
+                checkboxes.forEach(function(checkbox) {
+                    if (!checkbox.disabled && checkbox.checked) {
+                        const colKey = checkbox.value;
+                        if (!essentialColumns.includes(colKey)) {
+                            selectedColumns.push(colKey);
+                        }
+                    }
+                });
+                if (selectedColumns.length > essentialColumns.length) {
+                    visibleColumns = selectedColumns.join(',');
+                }
+            }
+            
+            // Récupérer tous les filtres depuis le state
+            // Sites
+            if (tableauState.selectedSites.length > 0 && tableauState.selectedSites.length < tableauState.allSites.length) {
+                params.set('sites', tableauState.selectedSites.join(','));
+            }
+            
+            // Période
+            params.set('period_type', tableauState.periodMode);
+            
+            // Calculer les dates selon le mode
+            updatePeriodDates();
+            
+            // Dates (selon le mode de période)
+            if (tableauState.periodMode !== 'toute_periode') {
+                if (tableauState.dateDebut) {
+                    params.set('date_debut', tableauState.dateDebut);
+                }
+                if (tableauState.dateFin) {
+                    params.set('date_fin', tableauState.dateFin);
+                }
+            }
+            
+            // Error types
+            if (tableauState.selectedErrorTypes.length > 0 && tableauState.selectedErrorTypes.length < tableauState.allErrorTypes.length) {
+                params.set('error_types', tableauState.selectedErrorTypes.join(','));
+            }
+            
+            // Moments
+            if (tableauState.selectedMoments.length > 0 && tableauState.selectedMoments.length < tableauState.allMoments.length) {
+                params.set('moments', tableauState.selectedMoments.join(','));
+            }
+            
+            // Moment avancé
+            if (tableauState.selectedMomentAvancee.length > 0 && tableauState.selectedMomentAvancee.length < tableauState.allMomentAvancee.length) {
+                params.set('moment_avancee', tableauState.selectedMomentAvancee.join(','));
+            }
+            
+            // S'assurer que visible_columns est toujours préservé (même si vide, on le garde)
+            if (visibleColumns) {
+                params.set('visible_columns', visibleColumns);
+            }
+            
+            
+            // Ajouter les paramètres des super filtres depuis le formulaire
+            // On récupère directement depuis les éléments du formulaire pour être sûr
+            const chargeTypeSelect = form.querySelector('select[name="charge_type"]');
+            const energyMaxInput = form.querySelector('input[name="energy_max"]');
+            const energyOperatorSelect = form.querySelector('select[name="energy_operator"]') || document.getElementById('energy-operator-select');
+            const vehicleTypeSelect = form.querySelector('select[name="vehicle_type"]');
+            const voltage800vSelect = form.querySelector('select[name="voltage_800v"]');
+            const pdcFilterInput = form.querySelector('input[name="pdc_filter"]');
+            const macAddressFilterInput = form.querySelector('input[name="mac_address_filter"]');
+            const pmaxMinInput = form.querySelector('input[name="pmax_min"]');
+            const pmaxOperatorSelect = form.querySelector('select[name="pmax_operator"]');
+            const durationInput = form.querySelector('input[name="duration"]');
+            const durationOperatorSelect = form.querySelector('select[name="duration_operator"]');
+            const errorMomentSelect = form.querySelector('select[name="error_moment"]');
+            
+            const chargeType = chargeTypeSelect ? chargeTypeSelect.value : 'Toutes';
+            const energyMax = energyMaxInput ? energyMaxInput.value.trim() : '';
+            
+            // Récupérer l'opérateur depuis le select - IMPORTANT: récupérer la valeur au moment de l'appel
+            let energyOperator = '<=';
+            if (energyOperatorSelect) {
+                energyOperator = energyOperatorSelect.value || '<=';
+            }
+            const vehicleType = vehicleTypeSelect ? vehicleTypeSelect.value : 'Tous';
+            const voltage800v = voltage800vSelect ? voltage800vSelect.value : 'Tous';
+            const pdcFilter = pdcFilterInput ? pdcFilterInput.value : '';
+            const macAddressFilter = macAddressFilterInput ? macAddressFilterInput.value.trim() : '';
+            const pmaxMin = pmaxMinInput ? pmaxMinInput.value : '';
+            const pmaxOperator = pmaxOperatorSelect ? pmaxOperatorSelect.value : '>=';
+            const duration = durationInput ? durationInput.value : '';
+            const durationOperator = durationOperatorSelect ? durationOperatorSelect.value : '>=';
+            const errorMoment = errorMomentSelect ? errorMomentSelect.value : '';
+            
+            
+            // Afficher/masquer le filtre moment d'erreur selon le type de charge
+            const errorMomentFilter = document.getElementById('error-moment-filter');
+            if (errorMomentFilter) {
+                if (chargeType === 'Non OK') {
+                    errorMomentFilter.style.display = 'flex';
+                } else {
+                    errorMomentFilter.style.display = 'none';
+                    // Réinitialiser le filtre si on n'est plus sur "Non OK"
+                    if (errorMomentSelect) {
+                        errorMomentSelect.value = '';
+                    }
+                }
+            }
+            
+            // Ajouter TOUS les paramètres, même s'ils sont à leur valeur par défaut
+            // Cela permet de voir clairement quels filtres sont actifs
+            params.set('charge_type', chargeType);
+            if (energyMax && energyMax.length > 0) {
+                // Vérifier une dernière fois la valeur du select avant d'ajouter aux params
+                const finalOperator = energyOperatorSelect ? energyOperatorSelect.value : energyOperator;
+                params.set('energy_max', energyMax);
+                params.set('energy_operator', finalOperator);
+            }
+            params.set('vehicle_type', vehicleType);
+            params.set('voltage_800v', voltage800v);
+            if (pdcFilter && pdcFilter.trim()) params.set('pdc_filter', pdcFilter.trim());
+            if (macAddressFilter) params.set('mac_address_filter', macAddressFilter);
+            if (pmaxMin && pmaxMin.trim()) {
+                params.set('pmax_min', pmaxMin.trim());
+                params.set('pmax_operator', pmaxOperator);
+            }
+            if (duration && duration.trim()) {
+                params.set('duration', duration.trim());
+                params.set('duration_operator', durationOperator);
+            }
+            if (errorMoment && errorMoment.trim()) params.set('error_moment', errorMoment.trim());
+            
+            // S'assurer que visible_columns est toujours préservé (après avoir ajouté tous les autres paramètres)
+            if (visibleColumns) {
+                params.set('visible_columns', visibleColumns);
+            }
+            
+            console.log('Final params:', params.toString());
+            console.log('charge_type value:', chargeType);
+            console.log('charge_type in params:', params.get('charge_type'));
+            console.log('visible_columns preserved:', params.get('visible_columns'));
+            
+            // Construire l'URL complète avec tous les paramètres
+            const fullUrl = '/dashboard/tableau-charges?' + params.toString();
+            
+            // Vérifier si on est dans un contexte htmx (chargement via tab)
+            // Si oui, on doit utiliser le système de refreshTab, sinon window.location
+            if (typeof refreshTab !== 'undefined' && typeof state !== 'undefined' && state.tab === 'tableau-charges') {
+                // On est dans le contexte de l'app principale
+                // Mettre à jour l'URL dans l'historique avec tous les paramètres
+                window.history.pushState({tab: 'tableau-charges'}, '', fullUrl);
+                // Recharger le contenu via htmx
+                const apiUrl = '/api/sessions/tableau-charges?' + params.toString();
+                if (typeof htmx !== 'undefined') {
+                    htmx.ajax('GET', apiUrl, {
+                        target: '#tab-content',
+                        swap: 'innerHTML'
+                    });
+                } else {
+                    console.log('HTMX not available, using window.location.href');
+                    window.location.href = fullUrl;
+                }
+            } else {
+                // Fallback: recharger la page complète
+                window.location.href = fullUrl;
+            }
+        };
+        
+        // Gérer l'affichage des dates manuelles selon le type de période
+        function toggleManualDates() {
+            const periodTypeSelect = document.getElementById('period-type-select');
+            const manualDatesContainer = document.getElementById('manual-dates-container');
+            const manualDatesContainerEnd = document.getElementById('manual-dates-container-end');
+            
+            if (periodTypeSelect && manualDatesContainer && manualDatesContainerEnd) {
+                if (periodTypeSelect.value === 'manuel') {
+                    manualDatesContainer.style.display = 'block';
+                    manualDatesContainerEnd.style.display = 'block';
+                } else {
+                    manualDatesContainer.style.display = 'none';
+                    manualDatesContainerEnd.style.display = 'none';
+                }
+            }
+        }
+        
+        // Attacher l'événement au changement de période
+        document.addEventListener('DOMContentLoaded', function() {
+            const periodTypeSelect = document.getElementById('period-type-select');
+            if (periodTypeSelect) {
+                periodTypeSelect.addEventListener('change', toggleManualDates);
+                toggleManualDates(); // Appeler une fois au chargement
+            }
+        });
+        
+        // Exposer aussi resetSuperFilters globalement
+        window.resetSuperFilters = function() {
+            console.log('resetSuperFilters called');
+            const form = document.getElementById('super-filters-form');
+            if (!form) {
+                console.error('Form not found for reset');
+                return;
+            }
+            
+            // Réinitialiser tous les filtres
+            const chargeTypeSelect = form.querySelector('select[name="charge_type"]');
+            const energyMaxInput = form.querySelector('input[name="energy_max"]');
+            const energyOperatorSelect = form.querySelector('select[name="energy_operator"]');
+            const vehicleTypeSelect = form.querySelector('select[name="vehicle_type"]');
+            const voltage800vSelect = form.querySelector('select[name="voltage_800v"]');
+            const pdcFilterInput = form.querySelector('input[name="pdc_filter"]');
+            const macAddressFilterInput = form.querySelector('input[name="mac_address_filter"]');
+            const pmaxMinInput = form.querySelector('input[name="pmax_min"]');
+            const pmaxOperatorSelect = form.querySelector('select[name="pmax_operator"]');
+            const durationInput = form.querySelector('input[name="duration"]');
+            const durationOperatorSelect = form.querySelector('select[name="duration_operator"]');
+            const errorMomentSelect = form.querySelector('select[name="error_moment"]');
+            
+            if (chargeTypeSelect) chargeTypeSelect.value = 'Toutes';
+            
+            // Réinitialiser les tags
+            tableauState.selectedSites = [...tableauState.allSites];
+            tableauState.selectedErrorTypes = [];
+            tableauState.selectedMoments = [];
+            tableauState.selectedMomentAvancee = [];
+            tableauState.periodMode = 'semaine-1';
+            
+            renderSitesTags();
+            renderErrorTypesTags();
+            renderMomentsTags();
+            renderMomentAvanceeTags();
+            setPeriodMode('semaine-1');
+            if (energyMaxInput) energyMaxInput.value = '';
+            if (energyOperatorSelect) energyOperatorSelect.value = '<=';
+            if (vehicleTypeSelect) vehicleTypeSelect.value = 'Tous';
+            if (voltage800vSelect) voltage800vSelect.value = 'Tous';
+            if (pdcFilterInput) pdcFilterInput.value = '';
+            if (macAddressFilterInput) macAddressFilterInput.value = '';
+            if (pmaxMinInput) pmaxMinInput.value = '';
+            if (pmaxOperatorSelect) pmaxOperatorSelect.value = '>=';
+            if (durationInput) durationInput.value = '';
+            if (durationOperatorSelect) durationOperatorSelect.value = '>=';
+            if (errorMomentSelect) errorMomentSelect.value = '';
+            
+            // Masquer le filtre moment d'erreur
+            const errorMomentFilter = document.getElementById('error-moment-filter');
+            if (errorMomentFilter) {
+                errorMomentFilter.style.display = 'none';
+            }
+            
+            applySuperFilters();
+        };
+        
+        // Plus d'auto-submit, on utilise le bouton "Appliquer filtres"
+        
+        // Fonction d'initialisation qui peut être appelée plusieurs fois (pour HTMX)
+        function initTableauCharges() {
+            console.log('=== initTableauCharges called ===');
+            
+            // Event listener pour le bouton "Appliquer filtres"
+            const applyBtn = document.getElementById('apply-filters-btn');
+            if (applyBtn) {
+                // Retirer tous les anciens listeners en clonant le bouton
+                const newApplyBtn = applyBtn.cloneNode(true);
+                applyBtn.parentNode.replaceChild(newApplyBtn, applyBtn);
+                
+                newApplyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof applySuperFilters === 'function') {
+                        applySuperFilters();
+                    }
+                });
+            }
+            
+            // Event listener pour le bouton "Réinitialiser"
+            const resetBtn = document.getElementById('reset-filters-btn');
+            if (resetBtn) {
+                // Retirer tous les anciens listeners en clonant le bouton
+                const newResetBtn = resetBtn.cloneNode(true);
+                resetBtn.parentNode.replaceChild(newResetBtn, resetBtn);
+                
+                newResetBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof resetSuperFilters === 'function') {
+                        resetSuperFilters();
+                    }
+                });
+            }
+            
+            // Gérer l'affichage des dates manuelles
+            const periodTypeSelect = document.getElementById('period-type-select');
+            if (periodTypeSelect) {
+                periodTypeSelect.addEventListener('change', toggleManualDates);
+                toggleManualDates(); // Appeler une fois au chargement
+            }
+            
+            // Afficher/masquer le filtre moment d'erreur selon le type de charge sélectionné
+            const chargeTypeSelect = document.querySelector('select[name="charge_type"]');
+            const errorMomentFilter = document.getElementById('error-moment-filter');
+            
+            if (chargeTypeSelect && errorMomentFilter) {
+                // Fonction pour mettre à jour la visibilité
+                function updateErrorMomentVisibility() {
+                    const chargeType = chargeTypeSelect.value;
+                    if (chargeType === 'Non OK') {
+                        errorMomentFilter.style.display = 'flex';
+                    } else {
+                        errorMomentFilter.style.display = 'none';
+                        // Réinitialiser le filtre si on n'est plus sur "Non OK"
+                        const errorMomentSelect = document.querySelector('select[name="error_moment"]');
+                        if (errorMomentSelect) {
+                            errorMomentSelect.value = '';
+                        }
+                    }
+                }
+                
+                // Mettre à jour au chargement
+                updateErrorMomentVisibility();
+                
+                // Mettre à jour quand le type de charge change
+                chargeTypeSelect.addEventListener('change', updateErrorMomentVisibility);
+            }
+        }
+        
+        // Initialiser au chargement du DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTableauCharges);
+        } else {
+            // DOM déjà chargé
+            initTableauCharges();
+        }
+        
+        // Fonction pour synchroniser les checkboxes avec visible_columns depuis l'URL
+        function syncCheckboxesWithVisibleColumns() {
+            const currentUrl = new URL(window.location.href);
+            const currentParams = new URLSearchParams(currentUrl.search);
+            const visibleColumnsParam = currentParams.get('visible_columns');
+            
+            if (visibleColumnsParam) {
+                const visibleColumnsList = visibleColumnsParam.split(',').map(col => col.trim());
+                const checkboxes = document.querySelectorAll('.column-checkbox');
+                
+                // Colonnes essentielles (toujours cochées et désactivées)
+                const essentialColumns = ['Site', 'PDC', 'Datetime start', 'is_ok', 'Lien', 'Actions', 'Erreur'];
+                
+                checkboxes.forEach(function(checkbox) {
+                    const colKey = checkbox.value.trim();
+                    // Les colonnes essentielles sont toujours cochées
+                    if (essentialColumns.includes(colKey)) {
+                        checkbox.checked = true;
+                    } else {
+                        // Cocher si la colonne est dans la liste visible
+                        checkbox.checked = visibleColumnsList.includes(colKey);
+                    }
+                });
+            }
+        }
+        
+        // Écouter les événements HTMX pour réinitialiser après un swap
+        if (typeof htmx !== 'undefined') {
+            document.body.addEventListener('htmx:afterSwap', function(event) {
+                if (event.detail.target.id === 'tab-content') {
+                    setTimeout(function() {
+                        initTableauCharges();
+                        // Synchroniser les checkboxes avec visible_columns après le swap
+                        syncCheckboxesWithVisibleColumns();
+                    }, 100);
+                }
+            });
+        }
+        
+        // Synchroniser au chargement initial aussi
+        syncCheckboxesWithVisibleColumns();
+        
+        // Fonction pour appliquer la sélection des colonnes
+        window.applyColumnSelection = function() {
+            const checkboxes = document.querySelectorAll('.column-checkbox:not([disabled])');
+            const selectedColumns = [];
+            
+            // Récupérer les colonnes essentielles (toujours sélectionnées)
+            const essentialColumns = ['Site', 'PDC', 'Datetime start', 'is_ok', 'Lien', 'Actions', 'Erreur'];
+            selectedColumns.push(...essentialColumns);
+            
+            // Ajouter les colonnes cochées
+            checkboxes.forEach(function(checkbox) {
+                if (checkbox.checked) {
+                    const colKey = checkbox.value;
+                    if (!essentialColumns.includes(colKey)) {
+                        selectedColumns.push(colKey);
+                    }
+                }
+            });
+            
+            // Récupérer les paramètres actuels de l'URL
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams(currentUrl.search);
+            
+            // Mettre à jour le paramètre visible_columns
+            params.set('visible_columns', selectedColumns.join(','));
+            
+            // Recharger avec les nouveaux paramètres
+            if (typeof htmx !== 'undefined' && htmx.find('#tab-content')) {
+                const apiUrl = '/api/sessions/tableau-charges?' + params.toString();
+                htmx.ajax('GET', apiUrl, {
+                    target: '#tab-content',
+                    swap: 'innerHTML'
+                });
+            } else {
+                // Fallback: recharger la page complète
+                window.location.href = '/dashboard/tableau-charges?' + params.toString();
+            }
+        };
+        
+        // Fonction pour réinitialiser la sélection des colonnes
+        window.resetColumnSelection = function() {
+            const defaultColumns = ['Site', 'PDC', 'Datetime start', 'Datetime end', 'Energy (Kwh)', 'SOC Start', 'SOC End', 'Vehicle', 'is_ok', 'Lien', 'Actions', 'Erreur'];
+            
+            // Décocher toutes les checkboxes
+            document.querySelectorAll('.column-checkbox').forEach(function(checkbox) {
+                checkbox.checked = defaultColumns.includes(checkbox.value);
+            });
+            
+            // Appliquer immédiatement
+            applyColumnSelection();
+        };
+    </script>
+
+    {% if rows %}
+    <!-- Statistiques - Format identique à Générale -->
+    <div class="recap-grid">
+        <div class="recap-card">
+            <div class="recap-card-label">Total charges</div>
+            <div class="recap-card-value">{{ total }}</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Réussite</div>
+            <div class="recap-card-value" style="color: #10b981;">{{ ok }}</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Échec</div>
+            <div class="recap-card-value" style="color: #ef4444;">{{ nok }}</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Taux réussite</div>
+            <div class="recap-card-value" style="color: #3b82f6;">{{ taux_reussite }}%</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Taux échec</div>
+            <div class="recap-card-value" style="color: #f59e0b;">{{ taux_echec }}%</div>
+        </div>
+    </div>
+
+    <!-- Sélection des colonnes -->
+    {% set visible_cols = visible_columns if visible_columns is defined else [] %}
+    {% set available_cols = available_columns if available_columns is defined else {} %}
+    <div style="margin-bottom: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 0.5rem; border: 1px solid #e0e0e0;">
+        <details style="cursor: pointer;">
+            <summary style="font-weight: 600; color: #1d4ed8; font-size: 0.95rem; list-style: none; user-select: none;">
+                <span style="user-select: none;">📊 Sélectionner les colonnes à afficher</span>
+            </summary>
+            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                {% for col_key, col_label in available_cols.items() %}
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: 0.25rem; background: white; border: 1px solid #e0e0e0;">
+                    <input type="checkbox" 
+                           name="column_{{ col_key }}" 
+                           value="{{ col_key }}" 
+                           class="column-checkbox"
+                           {% if col_key in visible_cols %}checked{% endif %}
+                           {% if col_key in ['Site', 'PDC', 'Datetime start', 'is_ok', 'Lien', 'Actions', 'Erreur'] %}disabled style="opacity: 0.5;"{% endif %}>
+                    <span style="font-size: 0.9rem;">{{ col_label }}</span>
+                    {% if col_key in ['Site', 'PDC', 'Datetime start', 'is_ok', 'Lien', 'Actions', 'Erreur'] %}
+                    <span style="font-size: 0.75rem; color: #666;">(requis)</span>
+                    {% endif %}
+                </label>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button type="button" onclick="applyColumnSelection()" style="padding: 0.5rem 1rem; background: #1d4ed8; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 600;">
+                    Appliquer
+                </button>
+                <button type="button" onclick="resetColumnSelection()" style="padding: 0.5rem 1rem; background: #6b7280; color: white; border: none; border-radius: 0.25rem; cursor: pointer; font-weight: 600;">
+                    Réinitialiser
+                </button>
+            </div>
+        </details>
+    </div>
+
+           <div class="table-wrapper-decharge">
+               <table class="decharge-table" id="decharge-table">
+                   <thead style="background: #ffffff !important; background-color: #ffffff !important; opacity: 1 !important;">
+                       <tr>
+                           {% if "Site" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Site</th>{% endif %}
+                           {% if "PDC" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">PDC</th>{% endif %}
+                           {% if "Datetime start" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Datetime start</th>{% endif %}
+                           {% if "Datetime end" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Datetime end</th>{% endif %}
+                           {% if "duration" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Durée</th>{% endif %}
+                           {% if "Energy (Kwh)" in visible_cols %}<th data-sortable="true" data-type="number" style="background: #ffffff !important; background-color: #ffffff !important;">Energy (Kwh)</th>{% endif %}
+                           {% if "Mean Power (Kw)" in visible_cols %}<th data-sortable="true" data-type="number" style="background: #ffffff !important; background-color: #ffffff !important;">Mean Power (Kw)</th>{% endif %}
+                           {% if "Max Power (Kw)" in visible_cols %}<th data-sortable="true" data-type="number" style="background: #ffffff !important; background-color: #ffffff !important;">Max Power (Kw)</th>{% endif %}
+                           {% if "SOC Start" in visible_cols %}<th data-sortable="true" data-type="number" style="background: #ffffff !important; background-color: #ffffff !important;">SOC Start</th>{% endif %}
+                           {% if "SOC End" in visible_cols %}<th data-sortable="true" data-type="number" style="background: #ffffff !important; background-color: #ffffff !important;">SOC End</th>{% endif %}
+                           {% if "Vehicle" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Vehicle</th>{% endif %}
+                           {% if "is_ok" in visible_cols %}<th data-sortable="true" data-type="number" style="background: #ffffff !important; background-color: #ffffff !important;">is_ok</th>{% endif %}
+                           {% if "type_erreur" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Type erreur</th>{% endif %}
+                           {% if "moment" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Moment</th>{% endif %}
+                           {% if "moment_avancee" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Moment avancé</th>{% endif %}
+                           {% if "evi_error_code" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">EVI Error Code</th>{% endif %}
+                           {% if "downstream_code_pc" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Downstream Code PC</th>{% endif %}
+                           {% if "evi_status_during_error" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">EVI Status during error</th>{% endif %}
+                           {% if "mac_address" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">MAC Address</th>{% endif %}
+                           {% if "charge_900V" in visible_cols %}<th data-sortable="true" style="background: #ffffff !important; background-color: #ffffff !important;">Charge 900V</th>{% endif %}
+                           {% if "Lien" in visible_cols %}<th style="background: #ffffff !important; background-color: #ffffff !important;">Lien</th>{% endif %}
+                           {% if "Actions" in visible_cols %}<th style="background: #ffffff !important; background-color: #ffffff !important;">Actions</th>{% endif %}
+                           {% if "Erreur" in visible_cols %}<th style="width: 50px; background: #ffffff !important; background-color: #ffffff !important;">Erreur</th>{% endif %}
+                       </tr>
+                   </thead>
+                   <tbody>
+                       {% for row in rows %}
+                       <tr{% if row.is_warning %} style="background-color: #fff7ed;"{% endif %}>
+                           {% if "Site" in visible_cols %}<td data-sort-value="{{ row.Site }}">{{ row.Site or '—' }}</td>{% endif %}
+                           {% if "PDC" in visible_cols %}<td data-sort-value="{{ row.PDC }}">{{ row.PDC or '—' }}</td>{% endif %}
+                           {% if "Datetime start" in visible_cols %}<td data-sort-value="{{ row['Datetime start'] }}">{{ row['Datetime start'] or '—' }}</td>{% endif %}
+                           {% if "Datetime end" in visible_cols %}<td data-sort-value="{{ row['Datetime end'] }}">{{ row['Datetime end'] or '—' }}</td>{% endif %}
+                           {% if "duration" in visible_cols %}<td data-sort-value="{{ row.duration if row.duration is not none else '' }}">{{ row.duration if row.duration is not none else '—' }}</td>{% endif %}
+                           {% if "Energy (Kwh)" in visible_cols %}<td style="text-align:right;" data-sort-value="{{ row['Energy (Kwh)'] }}">{{ row['Energy (Kwh)'] or '—' }}</td>{% endif %}
+                           {% if "Mean Power (Kw)" in visible_cols %}<td style="text-align:right;" data-sort-value="{{ row['Mean Power (Kw)'] if 'Mean Power (Kw)' in row else 0 }}">{{ row['Mean Power (Kw)'] if 'Mean Power (Kw)' in row and row['Mean Power (Kw)'] else '—' }}</td>{% endif %}
+                           {% if "Max Power (Kw)" in visible_cols %}<td style="text-align:right;" data-sort-value="{{ row['Max Power (Kw)'] if 'Max Power (Kw)' in row else 0 }}">{{ row['Max Power (Kw)'] if 'Max Power (Kw)' in row and row['Max Power (Kw)'] else '—' }}</td>{% endif %}
+                           {% if "SOC Start" in visible_cols %}<td style="text-align:right;" data-sort-value="{{ row['SOC Start'] }}">{{ row['SOC Start'] or '—' }}</td>{% endif %}
+                           {% if "SOC End" in visible_cols %}<td style="text-align:right;" data-sort-value="{{ row['SOC End'] }}">{{ row['SOC End'] or '—' }}</td>{% endif %}
+                           {% if "Vehicle" in visible_cols %}<td data-sort-value="{{ row.Vehicle }}">{{ row.Vehicle or '—' }}</td>{% endif %}
+                           {% if "is_ok" in visible_cols %}<td style="text-align:center;" data-sort-value="{{ row.is_ok }}">
+                               {% if row.is_warning %}
+                                   <span style="color: #f97316; font-size: 1.2rem; font-weight: 600;" title="Fin de charge (avertissement)">⚠</span>
+                               {% elif row.is_ok == 1 %}
+                                   <span style="color: #10b981; font-size: 1.2rem; font-weight: 600;">✓</span>
+                               {% else %}
+                                   <span style="color: #ef4444; font-size: 1.2rem; font-weight: 600;">✗</span>
+                               {% endif %}
+                           </td>{% endif %}
+                           {% if "type_erreur" in visible_cols %}<td>{{ row.type_erreur or '—' }}</td>{% endif %}
+                           {% if "moment" in visible_cols %}<td>{{ row.moment or '—' }}</td>{% endif %}
+                           {% if "moment_avancee" in visible_cols %}<td>{{ row.moment_avancee or '—' }}</td>{% endif %}
+                           {% if "evi_error_code" in visible_cols %}<td>{{ row.evi_error_code or '—' }}</td>{% endif %}
+                           {% if "downstream_code_pc" in visible_cols %}<td>{{ row.downstream_code_pc or '—' }}</td>{% endif %}
+                           {% if "evi_status_during_error" in visible_cols %}<td>{{ row.evi_status_during_error or '—' }}</td>{% endif %}
+                           {% if "mac_address" in visible_cols %}<td>{{ row.mac_address or '—' }}</td>{% endif %}
+                           {% if "charge_900V" in visible_cols %}<td>{{ row.charge_900V or '—' }}</td>{% endif %}
+                           {% if "Lien" in visible_cols %}<td style="text-align:center;">
+                               {% if row.url %}
+                               <a href="{{ row.url }}" target="_blank" class="mac-link" style="color:#1d4ed8; font-weight:600;">Détail</a>
+                               {% else %}
+                               <span class="muted-text">-</span>
+                               {% endif %}
+                           </td>{% endif %}
+                           {% if "Actions" in visible_cols %}<td style="text-align:center;">
+                               {% if row.logv0_url %}
+                               <a href="{{ row.logv0_url }}" target="_blank" class="mac-link" style="color:#1d4ed8; font-weight:600;">Suivre</a>
+                               {% else %}
+                               <span class="muted-text">-</span>
+                               {% endif %}
+                           </td>{% endif %}
+                           {% if "Erreur" in visible_cols %}<td style="text-align:center; padding: 0.25rem;">
+                               {% if row.is_warning and (row.type_erreur or row.moment or row.moment_avancee) %}
+                               <details style="margin: 0; display: inline-block;">
+                                   <summary style="cursor: pointer; color: #f97316; font-weight: 600; font-size: 0.85rem; padding: 0.25rem 0.5rem; list-style: none; display: inline-block;">
+                                       <span style="user-select: none;">⚠️</span>
+                                   </summary>
+                                   <div class="error-details" style="border-color: #f97316; background: #fff7ed; border-left: 3px solid #f97316;">
+                                       {% if row.type_erreur %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label" style="color: #9a3412;">Type d'erreur :</span>
+                                           <span class="error-details-value" style="color: #c2410c;">{{ row.type_erreur }}</span>
+                                       </div>
+                                       {% endif %}
+                                       {% if row.moment %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label" style="color: #9a3412;">Moment :</span>
+                                           <span class="error-details-value" style="color: #c2410c;">{{ row.moment }}</span>
+                                       </div>
+                                       {% endif %}
+                                       {% if row.moment_avancee %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label" style="color: #9a3412;">Moment avancé :</span>
+                                           <span class="error-details-value" style="color: #c2410c;">{{ row.moment_avancee }}</span>
+                                       </div>
+                                       {% endif %}
+                                   </div>
+                               </details>
+                               {% elif row.is_ok == 0 and (row.type_erreur or row.moment or row.moment_avancee) %}
+                               <details style="margin: 0; display: inline-block;">
+                                   <summary style="cursor: pointer; color: #dc2626; font-weight: 600; font-size: 0.85rem; padding: 0.25rem 0.5rem; list-style: none; display: inline-block;">
+                                       <span style="user-select: none;">🔴</span>
+                                   </summary>
+                                   <div class="error-details">
+                                       {% if row.type_erreur %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label">Type d'erreur :</span>
+                                           <span class="error-details-value">{{ row.type_erreur }}</span>
+                                       </div>
+                                       {% endif %}
+                                       {% if row.moment %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label">Moment :</span>
+                                           <span class="error-details-value">{{ row.moment }}</span>
+                                       </div>
+                                       {% endif %}
+                                       {% if row.moment_avancee %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label">Moment avancé :</span>
+                                           <span class="error-details-value">{{ row.moment_avancee }}</span>
+                                       </div>
+                                       {% endif %}
+                                       {% if row.downstream_code_pc %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label">Downstream Code PC :</span>
+                                           <span class="error-details-value">{{ row.downstream_code_pc }}</span>
+                                       </div>
+                                       {% endif %}
+                                       {% if row.evi_error_code %}
+                                       <div class="error-details-row">
+                                           <span class="error-details-label">EVI Error Code :</span>
+                                           <span class="error-details-value">{{ row.evi_error_code }}</span>
+                                       </div>
+                                       {% endif %}
+                                   </div>
+                               </details>
+                               {% else %}
+                               <span class="muted-text">-</span>
+                               {% endif %}
+                           </td>{% endif %}
+                       </tr>
+                       {% endfor %}
+                   </tbody>
+               </table>
+           </div>
+    <script>
+        (() => {
+            const table = document.querySelector('#decharge-table');
+            if (!table) return;
+
+            const headers = table.querySelectorAll('th[data-sortable]');
+            const tbody = table.querySelector('tbody');
+            if (!headers.length || !tbody) return;
+
+            let currentSort = { index: null, dir: 'asc' };
+
+            const parseValue = (text, type) => {
+                const cleaned = text.replace('%', '').replace(/\s+/g, '');
+                if (type === 'number' && cleaned !== '' && !isNaN(cleaned)) {
+                    return parseFloat(cleaned);
+                }
+                return cleaned.toLowerCase();
+            };
+
+            const applySort = (index, type) => {
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const dirMultiplier = currentSort.dir === 'asc' ? 1 : -1;
+
+                rows.sort((a, b) => {
+                    const aCell = a.children[index];
+                    const bCell = b.children[index];
+                    const aVal = parseValue(aCell?.dataset.sortValue ?? aCell?.textContent.trim() ?? '', type);
+                    const bVal = parseValue(bCell?.dataset.sortValue ?? bCell?.textContent.trim() ?? '', type);
+
+                    if (aVal < bVal) return -1 * dirMultiplier;
+                    if (aVal > bVal) return 1 * dirMultiplier;
+                    return 0;
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            };
+
+            const updateIndicators = (clickedIndex) => {
+                headers.forEach((th, idx) => {
+                    th.classList.remove('sorted-asc', 'sorted-desc');
+                    if (idx === clickedIndex) {
+                        th.classList.add(currentSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                    }
+                });
+            };
+
+            headers.forEach((th, index) => {
+                th.addEventListener('click', () => {
+                    const type = th.dataset.type || 'text';
+                    if (currentSort.index === index) {
+                        currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort = { index, dir: 'asc' };
+                    }
+                    applySort(index, type);
+                    updateIndicators(index);
+                });
+            });
+        })();
+    </script>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        {% if error %}
+        <div style="color: #dc2626; margin-top: 1rem; padding: 1rem; background: #fee; border-radius: 4px;">
+            <strong>❌ Erreur :</strong><br>
+            <pre style="font-size: 0.85rem; white-space: pre-wrap;">{{ error }}</pre>
+            {% if debug_traceback %}
+            <details style="margin-top: 0.5rem;">
+                <summary style="cursor: pointer; color: #991b1b;">🔍 Détails techniques</summary>
+                <pre style="font-size: 0.75rem; white-space: pre-wrap; margin-top: 0.5rem; background: white; padding: 0.5rem; border-radius: 0.25rem; overflow-x: auto;">{{ debug_traceback }}</pre>
+            </details>
+            {% endif %}
+        </div>
+        {% else %}
+        <div>Aucune charge trouvée sur ce périmètre.{% if debug_summary %} {{ debug_summary }}{% endif %}</div>
+        {% endif %}
+        {% if error %}
+        <div style="color: #dc2626; margin-top: 1rem; padding: 1rem; background: #fee; border-radius: 4px;">
+            <strong>❌ Erreur :</strong><br>
+            <pre style="font-size: 0.85rem; white-space: pre-wrap;">{{ error }}</pre>
+        </div>
+        {% endif %}
+        
+        {% if debug_info %}
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #f3f4f6; border-radius: 4px; border-left: 4px solid #3b82f6;">
+            <strong>🔍 Debug - Informations de la requête :</strong>
+            <div style="margin-top: 0.75rem;">
+                <strong>Filtres appliqués :</strong>
+                <ul style="margin-top: 0.25rem; margin-left: 1.5rem; font-size: 0.9rem;">
+                    <li><strong>Sites :</strong> {{ debug_info.filters.sites }}</li>
+                    <li><strong>Date début :</strong> {{ debug_info.filters.date_debut or '(aucune)' }}</li>
+                    <li><strong>Date fin :</strong> {{ debug_info.filters.date_fin or '(aucune)' }}</li>
+                    <li><strong>Types d'erreur :</strong> {{ debug_info.filters.error_types or '(aucun)' }}</li>
+                    <li><strong>Moments :</strong> {{ debug_info.filters.moments or '(aucun)' }}</li>
+                </ul>
+            </div>
+            <div style="margin-top: 0.75rem;">
+                <strong>WHERE clause :</strong>
+                <pre style="font-size: 0.85rem; background: white; padding: 0.5rem; border-radius: 0.25rem; overflow-x: auto; margin-top: 0.25rem;">{{ debug_info.where_clause }}</pre>
+            </div>
+            <div style="margin-top: 0.75rem;">
+                <strong>Paramètres SQL :</strong>
+                <pre style="font-size: 0.85rem; background: white; padding: 0.5rem; border-radius: 0.25rem; overflow-x: auto; margin-top: 0.25rem;">{{ debug_info.params }}</pre>
+            </div>
+            <div style="margin-top: 0.75rem;">
+                <strong>📋 Requête SQL complète :</strong>
+                <pre style="font-size: 0.8rem; background: white; padding: 0.75rem; border-radius: 0.25rem; overflow-x: auto; margin-top: 0.5rem; white-space: pre-wrap; max-height: 400px; overflow-y: auto; border: 1px solid #d1d5db;">{{ debug_info.sql }}</pre>
+            </div>
+            {% if debug_info.date_info %}
+            <div style="margin-top: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 0.25rem; border-left: 4px solid #f59e0b;">
+                <strong>📅 Informations sur les dates :</strong>
+                <div style="margin-top: 0.5rem;">{{ debug_info.date_info }}</div>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #92400e;">
+                    💡 Si aucune donnée pour 2026-01-01, essayez une date dans la plage disponible ci-dessus.
+                </div>
+            </div>
+            {% endif %}
+            {% if debug_info.row_count is defined %}
+            <div style="margin-top: 0.75rem;">
+                <strong>Nombre de lignes retournées par SQL :</strong> {{ debug_info.row_count }}
+            </div>
+            {% endif %}
+            {% if debug_info.rows_processed is defined %}
+            <div style="margin-top: 0.5rem;">
+                <strong>Lignes traitées :</strong> {{ debug_info.rows_processed }}, 
+                <strong>Lignes ajoutées au tableau :</strong> {{ debug_info.rows_added }}, 
+                <strong>Erreurs :</strong> {{ debug_info.errors_count }}
+            </div>
+            {% endif %}
+            {% if debug_info.first_error %}
+            <div style="margin-top: 0.75rem; padding: 0.75rem; background: #fee; border-radius: 0.25rem; border-left: 4px solid #dc2626;">
+                <strong>❌ Première erreur rencontrée :</strong>
+                <pre style="font-size: 0.85rem; margin-top: 0.5rem; white-space: pre-wrap;">{{ debug_info.first_error }}</pre>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        
+        {% if not error %}
+        <div style="color: #666; margin-top: 1rem; font-size: 0.9rem;">
+            💡 <strong>Conseil :</strong> Vérifiez que les filtres (sites, dates) correspondent à des données existantes.
+            <br>Si vous ne voyez aucune charge, essayez de :
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                <li>Changer le mode de date vers "Toute la période" pour voir toutes les charges</li>
+                <li>Vérifier que les sites sélectionnés contiennent des données</li>
+                <li>Élargir la plage de dates si des filtres de dates sont appliqués</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+

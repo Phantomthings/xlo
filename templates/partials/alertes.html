@@ -1,0 +1,172 @@
+<div class="panel">
+    <div class="panel-header">
+        <div>
+            <div class="panel-title">Erreurs récurrentes</div>
+            <div class="panel-subtitle">Analyse des sites présentant des erreurs récurrentes sur la période sélectionnée</div>
+        </div>
+        <div class="kpi-card {{ status }}">
+            <p class="kpi-value">{{ nb_alertes }}</p>
+            <p class="kpi-label">alertes détectées</p>
+        </div>
+    </div>
+
+    {% if rows %}
+    <div class="table-wrapper-alertes">
+        <table class="alertes-table">
+            <thead>
+                <tr>
+                    <th data-sortable="true">Site</th>
+                    <th data-sortable="true">PDC</th>
+                    <th data-sortable="true">Type d'erreur</th>
+                    <th data-sortable="true">Détection</th>
+                    <th data-sortable="true" data-type="number">Occurrences sur 12h</th>
+                    <th data-sortable="true">Moment</th>
+                    <th data-sortable="true">EVI Code</th>
+                    <th data-sortable="true">Downstream Code PC</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td data-sort-value="{{ row.site }}">{{ row.site }}</td>
+                    <td data-sort-value="{{ row.pdc }}">{{ row.pdc }}</td>
+                    <td data-sort-value="{{ row.type }}">{{ row.type }}</td>
+                    <td data-sort-value="{{ row.detection }}">{{ row.detection }}</td>
+                    <td class="text-center" data-sort-value="{{ row.occurrences }}">{{ row.occurrences }}</td>
+                    <td data-sort-value="{{ row.moment }}">{{ row.moment }}</td>
+                    <td data-sort-value="{{ row.evi_code }}">{{ row.evi_code }}</td>
+                    <td data-sort-value="{{ row.downstream_code_pc }}">{{ row.downstream_code_pc }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="icon">✅</div>
+        <div class="message">Aucune alerte dans le périmètre sélectionné.</div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .panel {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .panel-title {
+        font-weight: 700;
+        color: var(--color-text);
+        font-size: 1.05rem;
+    }
+    .panel-subtitle {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+    .table-wrapper-alertes {
+        overflow: auto;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        max-height: 480px;
+    }
+    .alertes-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 820px;
+    }
+    .alertes-table th {
+        position: sticky;
+        top: 0;
+        background: var(--color-surface);
+        text-align: left;
+        padding: 0.55rem;
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        border-bottom: 1px solid var(--color-border);
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+    }
+    .alertes-table th.sorted-asc::after { content: ' ▲'; font-size: 0.75rem; color: var(--color-text-muted); }
+    .alertes-table th.sorted-desc::after { content: ' ▼'; font-size: 0.75rem; color: var(--color-text-muted); }
+    .alertes-table td {
+        padding: 0.55rem;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 0.9rem;
+        color: var(--color-text);
+    }
+    .alertes-table tbody tr:nth-child(even) {
+        background: #f9fafb;
+    }
+    .text-center { text-align: center; }
+    .empty-state {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--color-text-muted);
+        padding: 0.75rem;
+        border: 1px dashed var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-bg);
+    }
+    .empty-state .icon {
+        font-size: 1.4rem;
+    }
+</style>
+
+<script>
+    (() => {
+        const table = document.querySelector('.alertes-table');
+        if (!table) return;
+
+        const headers = table.querySelectorAll('th[data-sortable]');
+        const tbody = table.querySelector('tbody');
+        if (!headers.length || !tbody) return;
+
+        let sortState = { index: null, dir: 'asc' };
+
+        const parseValue = (value, type) => {
+            if (type === 'number') return parseFloat(value) || 0;
+            return value?.toString().toLowerCase() || '';
+        };
+
+        const sortTable = (index, type) => {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const direction = sortState.index === index && sortState.dir === 'asc' ? 'desc' : 'asc';
+
+            rows.sort((a, b) => {
+                const aVal = parseValue(a.children[index]?.dataset.sortValue ?? a.children[index]?.textContent.trim() ?? '', type);
+                const bVal = parseValue(b.children[index]?.dataset.sortValue ?? b.children[index]?.textContent.trim() ?? '', type);
+
+                if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            sortState = { index, dir: direction };
+            headers.forEach((th, idx) => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (idx === index) th.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        };
+
+        headers.forEach((th, index) => {
+            th.addEventListener('click', () => sortTable(index, th.dataset.type || 'text'));
+        });
+    })();
+</script>

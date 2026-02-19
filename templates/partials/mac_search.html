@@ -1,0 +1,197 @@
+{% if error %}
+<div style="padding: 1rem; background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); color: #dc2626;">
+    {{ error }}
+</div>
+{% elif prompt %}
+<div style="padding: 1rem; background: #dbeafe; border: 1px solid #93c5fd; border-radius: var(--radius); color: #1e40af;">
+    {{ prompt }}
+</div>
+{% elif no_data %}
+<div style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
+    Aucune donnée disponible
+</div>
+{% elif no_results %}
+<div style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
+    Aucune charge trouvée pour: <strong>{{ mac_query }}</strong>
+</div>
+{% else %}
+
+<div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #7dd3fc; border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: #0369a1;">{{ mac_query }}</div>
+            <div style="font-size: 0.85rem; color: #0284c7; margin-top: 0.25rem;">{{ total }} charges trouvées</div>
+        </div>
+        <div style="display: flex; gap: 2rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 1.75rem; font-weight: 700; color: #10b981;">{{ ok_count }}</div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Réussies</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.75rem; font-weight: 700; color: #ef4444;">{{ nok_count }}</div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Échecs</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.75rem; font-weight: 700; color: #0284c7;">{{ success_rate }}%</div>
+                <div style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px;">Taux</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if ok_rows %}
+<div style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #10b981;">
+        Charges Réussies ({{ ok_count }})
+    </h3>
+    <div class="mac-table-container">
+        <table class="mac-table" id="ok-table">
+            <thead>
+                <tr>
+                    <th class="sortable" data-type="number" style="width: 60px;">N°</th>
+                    <th class="sortable">Site</th>
+                    <th class="sortable" data-type="number">PDC</th>
+                    <th class="sortable">Début</th>
+                    <th class="sortable">Fin</th>
+                    <th class="sortable">Durée</th>
+                    <th class="sortable">SOC</th>
+                    <th class="sortable">MAC</th>
+                    <th class="sortable">Véhicule</th>
+                    <th class="sortable" data-type="number">Énergie (kWh)</th>
+                    <th style="width: 80px;">Lien</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in ok_rows %}
+                <tr{% if row.get('is_warning') %} style="background-color: #fff7ed;"{% endif %}>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.Site or '—' }}</td>
+                    <td>{{ row.PDC or '—' }}</td>
+                    <td>{{ row['Datetime start'].strftime('%Y-%m-%d %H:%M') if row['Datetime start'] else '—' }}</td>
+                    <td>{{ row['Datetime end'].strftime('%Y-%m-%d %H:%M') if row['Datetime end'] else '—' }}</td>
+                    <td>{{ row.get('duration') if row.get('duration') is not none else '—' }}</td>
+                    <td>{{ row.evolution_soc or '—' }}</td>
+                    <td class="mac-code">{{ row.mac_formatted or '—' }}</td>
+                    <td>{{ row.Vehicle or '—' }}</td>
+                    <td style="text-align: right;" data-sort-value="{{ row['Energy (Kwh)'] or 0 }}">
+                        {% if row['Energy (Kwh)'] %}{{ "%.3f"|format(row['Energy (Kwh)']) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{{ row.elto_link }}" target="_blank" class="mac-link">Ouvrir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if nok_rows %}
+<div>
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: #ef4444;">
+        Charges Échouées ({{ nok_count }})
+    </h3>
+    <div class="mac-table-container">
+        <table class="mac-table" id="nok-table">
+            <thead>
+                <tr>
+                    <th class="sortable" data-type="number" style="width: 60px;">N°</th>
+                    <th class="sortable">Site</th>
+                    <th class="sortable" data-type="number">PDC</th>
+                    <th class="sortable">Début</th>
+                    <th class="sortable">Fin</th>
+                    <th class="sortable">Durée</th>
+                    <th class="sortable">SOC</th>
+                    <th class="sortable">MAC</th>
+                    <th class="sortable">Véhicule</th>
+                    <th class="sortable">Erreur</th>
+                    <th class="sortable" data-type="number">Énergie (kWh)</th>
+                    <th style="width: 80px;">Lien</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in nok_rows %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.Site or '—' }}</td>
+                    <td>{{ row.PDC or '—' }}</td>
+                    <td>{{ row['Datetime start'].strftime('%Y-%m-%d %H:%M') if row['Datetime start'] else '—' }}</td>
+                    <td>{{ row['Datetime end'].strftime('%Y-%m-%d %H:%M') if row['Datetime end'] else '—' }}</td>
+                    <td>{{ row.get('duration') if row.get('duration') is not none else '—' }}</td>
+                    <td>{{ row.evolution_soc or '—' }}</td>
+                    <td class="mac-code">{{ row.mac_formatted or '—' }}</td>
+                    <td>{{ row.Vehicle or '—' }}</td>
+                    <td style="color: #dc2626; font-weight: 500;">{{ row.erreur or '—' }}</td>
+                    <td style="text-align: right;" data-sort-value="{{ row['Energy (Kwh)'] or 0 }}">
+                        {% if row['Energy (Kwh)'] %}{{ "%.3f"|format(row['Energy (Kwh)']) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{{ row.elto_link }}" target="_blank" class="mac-link">Ouvrir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script>
+(function() {
+    function initSorting(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        
+        var headers = table.querySelectorAll('th.sortable');
+        var tbody = table.querySelector('tbody');
+        var currentSort = { col: null, dir: 'asc' };
+
+        function parseValue(text, type) {
+            var cleaned = (text || '').toString().replace(/\s+/g, '').replace('%', '');
+            if (type === 'number') {
+                return parseFloat(cleaned) || 0;
+            }
+            return cleaned.toLowerCase();
+        }
+
+        function sortTable(colIndex, type) {
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+            var mult = dir === 'asc' ? 1 : -1;
+
+            rows.sort(function(a, b) {
+                var aVal = parseValue(
+                    a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(),
+                    type
+                );
+                var bVal = parseValue(
+                    b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(),
+                    type
+                );
+                return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+            });
+
+            rows.forEach(function(row) { tbody.appendChild(row); });
+
+            headers.forEach(function(h) {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            headers[colIndex].classList.add('sorted-' + dir);
+
+            currentSort = { col: colIndex, dir: dir };
+        }
+
+        headers.forEach(function(th, index) {
+            th.addEventListener('click', function() {
+                sortTable(index, th.dataset.type || 'text');
+            });
+        });
+    }
+
+    initSorting('ok-table');
+    initSorting('nok-table');
+})();
+</script>
+
+{% endif %}

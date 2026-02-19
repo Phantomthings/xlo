@@ -1,0 +1,107 @@
+{% if error %}
+<div style="padding: 1rem; background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); color: #dc2626;">
+    Erreur: {{ error }}
+</div>
+{% elif no_data %}
+<div style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
+    Aucune donnée disponible pour cette période
+</div>
+{% else %}
+
+<div class="mac-table-container">
+    <table class="mac-table" id="top10-table">
+        <thead>
+            <tr>
+                <th class="sortable" data-type="number" style="width: 80px; text-align: center;">Rang</th>
+                <th class="sortable">Adresse MAC</th>
+                <th class="sortable" data-type="number">Nombre de Charges</th>
+                <th class="sortable" data-type="number">Taux Réussite</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr class="clickable" onclick="searchMac('{{ row.Mac }}')">
+                <td class="mac-rank {% if row.Rang == 1 %}gold{% elif row.Rang == 2 %}silver{% elif row.Rang == 3 %}bronze{% endif %}">
+                    {{ row.Rang }}
+                </td>
+                <td class="mac-code">{{ row.Mac }}</td>
+                <td class="mac-number" data-sort-value="{{ row.nombre_de_charges }}">
+                    {{ "{:,}".format(row.nombre_de_charges).replace(',', ' ') }}
+                </td>
+                <td class="mac-rate {% if row.taux_reussite >= 80 %}high{% elif row.taux_reussite >= 50 %}medium{% else %}low{% endif %}" data-sort-value="{{ row.taux_reussite }}">
+                    {{ "%.1f"|format(row.taux_reussite) }}%
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mac-note">
+    <strong>Note:</strong> Cliquez sur une ligne pour rechercher automatiquement cette adresse MAC
+</div>
+
+<script>
+(function() {
+    window.searchMac = function(mac) {
+        var form = document.querySelector('form[hx-get="/api/mac-address/search"]');
+        if (form) {
+            var input = form.querySelector('input[name="mac_query"]');
+            if (input) {
+                input.value = mac;
+                htmx.trigger(form, 'submit');
+            }
+        }
+    };
+
+    var table = document.getElementById('top10-table');
+    if (!table) return;
+    
+    var headers = table.querySelectorAll('th.sortable');
+    var tbody = table.querySelector('tbody');
+    var currentSort = { col: null, dir: 'asc' };
+
+    function parseValue(text, type) {
+        var cleaned = (text || '').toString().replace(/\s+/g, '').replace('%', '');
+        if (type === 'number') {
+            return parseFloat(cleaned) || 0;
+        }
+        return cleaned.toLowerCase();
+    }
+
+    function sortTable(colIndex, type) {
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+        var mult = dir === 'asc' ? 1 : -1;
+
+        rows.sort(function(a, b) {
+            var aVal = parseValue(
+                a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(),
+                type
+            );
+            var bVal = parseValue(
+                b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(),
+                type
+            );
+            return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+        });
+
+        rows.forEach(function(row) { tbody.appendChild(row); });
+
+        headers.forEach(function(h) {
+            h.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        headers[colIndex].classList.add('sorted-' + dir);
+
+        currentSort = { col: colIndex, dir: dir };
+    }
+
+    headers.forEach(function(th, index) {
+        th.addEventListener('click', function() {
+            sortTable(index, th.dataset.type || 'text');
+        });
+    });
+})();
+</script>
+
+{% endif %}

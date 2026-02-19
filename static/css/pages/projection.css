@@ -1,0 +1,124 @@
+.projection-card {
+    background: #0f172a;
+    border: 1px solid #1f2937;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,.1);
+}
+.projection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #e2e8f0;
+    font-weight: 600;
+}
+.projection-header small {
+    color: #94a3b8;
+    font-weight: 500;
+}
+.projection-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    overflow: hidden;
+    border-radius: 10px;
+}
+.projection-table th,
+.projection-table td {
+    border: 1px solid #1f2937;
+    padding: 8px 10px;
+    text-align: center;
+}
+.projection-table th {
+    background: #0b1221;
+    color: #cbd5e1;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.projection-table thead tr:nth-child(2) th {
+    top: 36px;
+}
+.projection-table td:first-child {
+    text-align: left;
+    color: #f8fafc;
+    font-weight: 600;
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: linear-gradient(90deg, #0b1221 0%, #0f172a 100%);
+}
+.projection-table th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+}
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.legend-swatch {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #1f2937;
+    border-radius: 3px;
+}
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 10px;
+}
+.projection-filters {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.projection-filter-group label {
+    font-weight: 700;
+    color: #0f172a;
+    display: block;
+    margin-bottom: 6px;
+}
+#projection-site-select {
+    width: 260px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+}
+.projection-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #0f172a;
+}
+.projection-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+.projection-hint {
+    color: #475569;
+    font-size: 0.9rem;
+    margin: 0;
+}

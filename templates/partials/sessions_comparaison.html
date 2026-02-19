@@ -1,0 +1,383 @@
+<style>
+.mac-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    max-height: 600px;
+    overflow-y: auto;
+}
+.mac-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.mac-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+}
+.mac-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.mac-table th:hover { background: #e2e8f0; }
+.mac-table th.sortable::after { content: ' ⇅'; color: var(--color-text-muted); font-size: 0.75rem; }
+.mac-table th.sorted-asc::after { content: ' ▲'; color: var(--color-primary); }
+.mac-table th.sorted-desc::after { content: ' ▼'; color: var(--color-primary); }
+.mac-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+.mac-table tbody tr:hover { background: #f9fafb; }
+
+.sticky-first-col {
+    position: sticky;
+    left: 0;
+    background: #f8fafc;
+    z-index: 2;
+}
+
+.chart-v-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 280px;
+    gap: 0.5rem;
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--color-border);
+    margin-bottom: 1rem;
+}
+.chart-v-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+.chart-v-bars {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 100%;
+}
+.chart-v-bar-ok {
+    width: 20px;
+    background: linear-gradient(180deg, #38AC21, #22c55e);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+}
+.chart-v-bar-nok {
+    width: 20px;
+    background: linear-gradient(180deg, #ef4444, #dc2626);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+}
+.chart-v-value {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.chart-v-label {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text);
+    text-align: center;
+}
+</style>
+
+<div style="display:flex; flex-direction:column; gap:1.5rem;">
+    {% if error_message %}
+    <div style="padding:1rem; border:1px solid #ef4444; background:#fef2f2; color:#991b1b; border-radius:var(--radius);">
+        ⚠️ {{ error_message }}
+    </div>
+    {% endif %}
+
+    <!-- Statistiques par site -->
+    <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius); padding:1.5rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h4 style="font-size:1.05rem; font-weight:700; margin:0; color:var(--color-text);">Statistiques par site</h4>
+            <div style="font-size:0.85rem; color:var(--color-text-muted);">OK = réussi · NOK = échec</div>
+        </div>
+        {% if site_rows %}
+        <div class="mac-table-container">
+            <table class="mac-table" id="stats-table">
+                <thead>
+                    <tr>
+                        <th class="sortable">Site</th>
+                        <th class="sortable" data-type="number">Total Charges</th>
+                        <th class="sortable" data-type="number">Charges OK</th>
+                        <th class="sortable" data-type="number">Charges NOK</th>
+                        <th class="sortable" data-type="number">% Réussite</th>
+                        <th class="sortable" data-type="number">% Échec</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in site_rows %}
+                    <tr>
+                        <td style="font-weight:600;">{{ row['Site'] }}</td>
+                        <td data-sort-value="{{ row['Total_Charges'] }}">{{ row['Total_Charges'] }}</td>
+                        <td style="color:#15803d; font-weight:600;" data-sort-value="{{ row['Charges_OK'] }}">{{ row['Charges_OK'] }}</td>
+                        <td style="color:#dc2626; font-weight:600;" data-sort-value="{{ row['Charges_NOK'] }}">{{ row['Charges_NOK'] }}</td>
+                        <td style="color:#1d4ed8;" data-sort-value="{{ row['% Réussite'] }}">{{ row['% Réussite'] }}%</td>
+                        <td style="color:#b91c1c;" data-sort-value="{{ row['% Échec'] }}">{{ row['% Échec'] }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1.5rem;">
+            <div style="padding:1rem; border:1px solid var(--color-border); border-radius:var(--radius); background:var(--color-bg);">
+                <div style="font-weight:600; margin-bottom:1rem; color:var(--color-text);">Volumes OK / NOK</div>
+                {% for row in count_bars %}
+                {% set ok_ratio = (row.ok / max_total * 100) if max_total else 0 %}
+                {% set nok_ratio = (row.nok / max_total * 100) if max_total else 0 %}
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                    <div style="width:110px; font-weight:600; color:var(--color-text);">{{ row.site }}</div>
+                    <div style="flex:1; background:var(--color-surface); border:1px solid var(--color-border); border-radius:6px; overflow:hidden; display:flex; height:20px;">
+                        <div style="width:{{ ok_ratio }}%; background:#38AC21;"></div>
+                        <div style="width:{{ nok_ratio }}%; background:#ef4444;"></div>
+                    </div>
+                    <div style="width:120px; display:flex; justify-content:space-between; font-size:0.85rem; color:var(--color-text-muted);">
+                        <span>{{ row.ok }}</span>
+                        <span>{{ row.nok }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="padding:1rem; border:1px solid var(--color-border); border-radius:var(--radius); background:var(--color-bg);">
+                <div style="font-weight:600; margin-bottom:1rem; color:var(--color-text);">Répartition en %</div>
+                {% for row in percent_bars %}
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                    <div style="width:110px; font-weight:600; color:var(--color-text);">{{ row.site }}</div>
+                    <div style="flex:1; background:var(--color-surface); border:1px solid var(--color-border); border-radius:6px; overflow:hidden; display:flex; height:20px;">
+                        <div style="width:{{ row.ok_pct }}%; background:#38AC21;"></div>
+                        <div style="width:{{ row.nok_pct }}%; background:#ef4444;"></div>
+                    </div>
+                    <div style="width:120px; display:flex; justify-content:space-between; font-size:0.85rem; color:var(--color-text-muted);">
+                        <span>{{ row.ok_pct }}%</span>
+                        <span>{{ row.nok_pct }}%</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div style="padding:1rem; color:var(--color-text-muted); text-align:center;">Aucune donnée</div>
+        {% endif %}
+    </div>
+
+    <!-- Analyse temporelle -->
+    <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius); padding:1.5rem;">
+        <h4 style="font-size:1.05rem; font-weight:700; margin:0 0 1rem 0; color:var(--color-text);">Analyse temporelle</h4>
+        {% if peak_rows %}
+        <div class="mac-table-container">
+            <table class="mac-table" id="peak-table">
+                <thead>
+                    <tr>
+                        <th class="sortable">Site</th>
+                        <th class="sortable" data-type="number">Heure de pic</th>
+                        <th class="sortable" data-type="number">Nb au pic</th>
+                        <th class="sortable" data-type="number">Heure médiane</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in peak_rows %}
+                    <tr>
+                        <td style="font-weight:600;">{{ row.site }}</td>
+                        <td data-sort-value="{{ row.peak_hour }}">{{ row.peak_hour }}</td>
+                        <td data-sort-value="{{ row.peak_nb }}">{{ row.peak_nb }}</td>
+                        <td data-sort-value="{{ row.median_hour }}">{{ row.median_hour }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top:1.5rem;">
+            <div style="font-weight:600; margin-bottom:1rem; color:var(--color-text);">Heatmap des charges par heure</div>
+            {% if heatmap_rows %}
+            <div class="mac-table-container">
+                <table class="mac-table" id="heatmap-table">
+                    <thead>
+                        <tr>
+                            <th class="sticky-first-col sortable">Site</th>
+                            {% for hour in heatmap_hours %}
+                            <th class="sortable" data-type="number" style="text-align:center;">{{ "%02d:00" % hour }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in heatmap_rows %}
+                        <tr>
+                            <td class="sticky-first-col" style="font-weight:600;">{{ row.site }}</td>
+                            {% for value in row['values'] %}
+                            {% set ratio = (value / heatmap_max * 0.85) if heatmap_max else 0 %}
+                            {% set text_color = '#0f172a' if ratio < 0.55 else '#ffffff' %}
+                            <td data-sort-value="{{ value }}" style="text-align:center; background:rgba(37,99,235,{{ '%.3f' % ratio }}); color:{{ text_color }}; font-weight:600;">{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="padding:1rem; color:var(--color-text-muted); text-align:center;">Pas de données heatmap</div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div style="padding:1rem; color:var(--color-text-muted); text-align:center;">Aucune donnée temporelle</div>
+        {% endif %}
+    </div>
+
+    <!-- Zoom site et périodicité -->
+    <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius); padding:1.5rem;">
+        <div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between; margin-bottom:1.5rem;">
+            <h4 style="font-size:1.05rem; font-weight:700; margin:0; color:var(--color-text);">Zoom site et périodicité</h4>
+            <form hx-get="/api/sessions/comparaison" hx-target="#tab-content" hx-swap="innerHTML" style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="hidden" name="sites" value="{{ filters.sites }}">
+                <input type="hidden" name="date_debut" value="{{ filters.date_debut }}">
+                <input type="hidden" name="date_fin" value="{{ filters.date_fin }}">
+                <input type="hidden" name="error_types" value="{{ filters.error_types }}">
+                <input type="hidden" name="moments" value="{{ filters.moments }}">
+                <select name="site_focus" onchange="this.form.requestSubmit()" class="select-input" style="min-width:220px;">
+                    {% for opt in site_options %}
+                    <option value="{{ opt }}" {% if opt == site_focus %}selected{% endif %}>{{ opt }}</option>
+                    {% endfor %}
+                </select>
+                <select name="month_focus" onchange="this.form.requestSubmit()" class="select-input" style="min-width:150px;">
+                    {% for m in month_options %}
+                    <option value="{{ m }}" {% if m == month_focus %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        {% if site_focus %}
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+            <!-- Distribution mensuelle -->
+            <div style="border:1px solid var(--color-border); border-radius:var(--radius); padding:1.5rem; background:var(--color-bg);">
+                <div style="font-weight:600; margin-bottom:1rem; color:var(--color-text);">Distribution mensuelle — {{ site_focus }}</div>
+                {% if monthly_rows %}
+                {% set month_ns = namespace(max_total=0) %}
+                {% for row in monthly_rows %}
+                    {% set total_val = row.ok + row.nok %}
+                    {% if total_val > month_ns.max_total %}{% set month_ns.max_total = total_val %}{% endif %}
+                {% endfor %}
+                
+                <div class="chart-v-container">
+                    {% for row in monthly_rows %}
+                    {% set ok_h = (row.ok / month_ns.max_total * 100) if month_ns.max_total else 0 %}
+                    {% set nok_h = (row.nok / month_ns.max_total * 100) if month_ns.max_total else 0 %}
+                    <div class="chart-v-col">
+                        <div class="chart-v-bars">
+                            <div class="chart-v-bar-ok" style="height:{{ ok_h }}%;">
+                                <div class="chart-v-value" style="color:#15803d;">{{ row.ok }}</div>
+                            </div>
+                            <div class="chart-v-bar-nok" style="height:{{ nok_h }}%;">
+                                <div class="chart-v-value" style="color:#dc2626;">{{ row.nok }}</div>
+                            </div>
+                        </div>
+                        <div class="chart-v-label">{{ row.month }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="padding:1rem; color:var(--color-text-muted); text-align:center;">Aucune donnée</div>
+                {% endif %}
+            </div>
+
+            <!-- Détail journalier -->
+            <div style="border:1px solid var(--color-border); border-radius:var(--radius); padding:1.5rem; background:var(--color-bg);">
+                <div style="font-weight:600; margin-bottom:1rem; color:var(--color-text);">Détail journalier — {{ site_focus }} {% if month_focus %}({{ month_focus }}){% endif %}</div>
+                {% if daily_rows %}
+                {% set day_ns = namespace(max_total=0) %}
+                {% for row in daily_rows %}
+                    {% set total_val = row.ok + row.nok %}
+                    {% if total_val > day_ns.max_total %}{% set day_ns.max_total = total_val %}{% endif %}
+                {% endfor %}
+                
+                <div style="overflow-x:auto;">
+                    <div class="chart-v-container" style="min-width:{{ daily_rows|length * 60 }}px;">
+                        {% for row in daily_rows %}
+                        {% set ok_h = (row.ok / day_ns.max_total * 100) if day_ns.max_total else 0 %}
+                        {% set nok_h = (row.nok / day_ns.max_total * 100) if day_ns.max_total else 0 %}
+                        <div class="chart-v-col">
+                            <div class="chart-v-bars">
+                                <div class="chart-v-bar-ok" style="height:{{ ok_h }}%;">
+                                    <div class="chart-v-value" style="color:#15803d;">{{ row.ok }}</div>
+                                </div>
+                                <div class="chart-v-bar-nok" style="height:{{ nok_h }}%;">
+                                    <div class="chart-v-value" style="color:#dc2626;">{{ row.nok }}</div>
+                                </div>
+                            </div>
+                            <div class="chart-v-label">{{ row.day }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div style="padding:1rem; color:var(--color-text-muted); text-align:center;">Aucune donnée</div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div style="padding:1rem; color:var(--color-text-muted); text-align:center;">Sélectionnez un site</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    function initSorting(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var headers = table.querySelectorAll('th.sortable');
+        var tbody = table.querySelector('tbody');
+        var currentSort = { col: null, dir: 'asc' };
+
+        function parseValue(text, type) {
+            var cleaned = (text || '').toString().replace(/\s+/g, '').replace('%', '');
+            if (type === 'number') return parseFloat(cleaned) || 0;
+            return cleaned.toLowerCase();
+        }
+
+        function sortTable(colIndex, type) {
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+            var mult = dir === 'asc' ? 1 : -1;
+
+            rows.sort(function(a, b) {
+                var aVal = parseValue(a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(), type);
+                var bVal = parseValue(b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(), type);
+                return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+            });
+
+            rows.forEach(function(row) { tbody.appendChild(row); });
+            headers.forEach(function(h) { h.classList.remove('sorted-asc', 'sorted-desc'); });
+            headers[colIndex].classList.add('sorted-' + dir);
+            currentSort = { col: colIndex, dir: dir };
+        }
+
+        headers.forEach(function(th, index) {
+            th.addEventListener('click', function() {
+                sortTable(index, th.dataset.type || 'text');
+            });
+        });
+    }
+
+    initSorting('stats-table');
+    initSorting('peak-table');
+    initSorting('heatmap-table');
+})();
+</script>

@@ -1,0 +1,269 @@
+<style>
+.report-generator {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.report-generator h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--color-text);
+}
+
+.generator-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--color-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+}
+
+.generator-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text);
+}
+
+.generator-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.generate-btn {
+    padding: 1rem 2rem;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.generate-btn:hover {
+    background: #1e40af;
+}
+
+.generate-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+</style>
+
+<div class="report-generator">
+    <h2>📄 Génération de Rapport Client</h2>
+    
+    <form id="report-generator-form" class="generator-form" onsubmit="event.preventDefault(); generateReport();">
+        <!-- Période -->
+        <div class="generator-section">
+            <h3>📅 Période d'analyse</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Date de début</label>
+                    <input type="date" name="date_debut" id="report-date-debut" required>
+                </div>
+                <div class="form-group">
+                    <label>Date de fin</label>
+                    <input type="date" name="date_fin" id="report-date-fin" required>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sites -->
+        <div class="generator-section">
+            <h3>🏢 Sites</h3>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="report-all-sites" checked onchange="toggleSiteSelection()">
+                    Tous les sites
+                </label>
+                <div id="report-sites-list" style="display: none; margin-top: 0.5rem;">
+                    <select name="sites" id="report-sites-select" multiple style="min-height: 150px;">
+                        <!-- Rempli dynamiquement -->
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sections à inclure -->
+        <div class="generator-section">
+            <h3>📋 Sections du rapport</h3>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-cover" checked>
+                    <label for="section-cover">Page de couverture</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-executive" checked>
+                    <label for="section-executive">Résumé exécutif</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-performance" checked>
+                    <label for="section-performance">Performance globale</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-errors" checked>
+                    <label for="section-errors">Analyse des erreurs</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-site-details" checked>
+                    <label for="section-site-details">Performance par site</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-energy" checked>
+                    <label for="section-energy">Analyse énergétique</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="section-insights" checked>
+                    <label for="section-insights">Insights et recommandations</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filtres optionnels -->
+        <div class="generator-section">
+            <h3>🔍 Filtres optionnels</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Types d'erreur (optionnel)</label>
+                    <input type="text" name="error_types" placeholder="Séparés par virgule">
+                </div>
+                <div class="form-group">
+                    <label>Moments d'erreur (optionnel)</label>
+                    <input type="text" name="moments" placeholder="Séparés par virgule">
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="generate-btn">📊 Générer le rapport</button>
+    </form>
+</div>
+
+<script>
+function toggleSiteSelection() {
+    const allSites = document.getElementById('report-all-sites').checked;
+    const sitesList = document.getElementById('report-sites-list');
+    sitesList.style.display = allSites ? 'none' : 'block';
+}
+
+function generateReport() {
+    const form = document.getElementById('report-generator-form');
+    const formData = new FormData(form);
+    
+    // Construire les paramètres
+    const params = new URLSearchParams();
+    
+    // Dates
+    params.set('date_debut', formData.get('date_debut') || '');
+    params.set('date_fin', formData.get('date_fin') || '');
+    
+    // Sites
+    const allSites = document.getElementById('report-all-sites').checked;
+    if (!allSites) {
+        const selectedSites = Array.from(document.getElementById('report-sites-select').selectedOptions)
+            .map(opt => opt.value);
+        if (selectedSites.length > 0) {
+            params.set('sites', selectedSites.join(','));
+        }
+    }
+    
+    // Filtres optionnels
+    if (formData.get('error_types')) {
+        params.set('error_types', formData.get('error_types'));
+    }
+    if (formData.get('moments')) {
+        params.set('moments', formData.get('moments'));
+    }
+    
+    const url = '/api/report?' + params.toString();
+    if (typeof htmx !== 'undefined') {
+        htmx.ajax('GET', url, {
+            target: '#tab-content',
+            swap: 'innerHTML'
+        });
+    } else {
+        window.location.href = url;
+    }
+}
+
+// Initialiser les dates par défaut (mois en cours)
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    document.getElementById('report-date-debut').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('report-date-fin').value = lastDay.toISOString().split('T')[0];
+    
+    // Charger la liste des sites depuis l'API
+    if (typeof state !== 'undefined' && state.allSites) {
+        const select = document.getElementById('report-sites-select');
+        state.allSites.forEach(site => {
+            const option = document.createElement('option');
+            option.value = site;
+            option.textContent = site;
+            select.appendChild(option);
+        });
+    }
+});
+</script>
+
+

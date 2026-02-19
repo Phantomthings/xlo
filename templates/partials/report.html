@@ -1,0 +1,1556 @@
+<style>
+/* Styles pour le rapport client - optimisé pour impression PDF */
+.report-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1e293b;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media print {
+    .report-container {
+        max-width: 100%;
+        padding: 1rem;
+    }
+}
+
+.report-page {
+    page-break-after: always;
+    margin-bottom: 3rem;
+}
+
+.report-page:last-child {
+    page-break-after: auto;
+}
+
+.report-cover {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    text-align: center;
+    border: 3px solid #1e40af;
+    border-radius: 8px;
+    padding: 3rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+.report-cover h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 1rem;
+}
+
+.report-cover .subtitle {
+    font-size: 1.5rem;
+    color: #64748b;
+    margin-bottom: 3rem;
+}
+
+.report-cover .period {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2rem;
+}
+
+.report-cover .meta {
+    font-size: 1rem;
+    color: #64748b;
+    margin-top: 3rem;
+}
+
+.report-section {
+    margin-bottom: 3rem;
+    page-break-inside: avoid;
+}
+
+.report-section h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #1e40af;
+}
+
+.report-section h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #334155;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.kpi-card-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.kpi-card-value.success { color: #10b981; }
+.kpi-card-value.error { color: #ef4444; }
+.kpi-card-value.info { color: #3b82f6; }
+
+.message-cle {
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: 2rem 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #1e293b;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+}
+
+.report-table thead {
+    background: #1e40af;
+    color: white;
+}
+
+.report-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #1e3a8a;
+}
+
+.report-table td {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+.report-table tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+.report-table tbody tr:hover {
+    background: #e2e8f0;
+}
+
+.chart-container {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.insight-box {
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 2px solid;
+}
+
+.insight-box.strong {
+    background: #f0fdf4;
+    border-color: #10b981;
+}
+
+.insight-box.attention {
+    background: #fef2f2;
+    border-color: #ef4444;
+}
+
+.insight-box.recommendation {
+    background: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.insight-box h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.insight-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.insight-box li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.insight-box.strong li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    font-weight: bold;
+}
+
+.insight-box.attention li::before {
+    content: "⚠";
+    position: absolute;
+    left: 0;
+    color: #ef4444;
+}
+
+.insight-box.recommendation li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #3b82f6;
+    font-weight: bold;
+}
+
+.site-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.site-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.site-card-color {
+    width: 100%;
+    height: 4px;
+    border-radius: 4px 4px 0 0;
+    margin: -1rem -1rem 1rem -1rem;
+}
+
+.site-card-label {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.site-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.site-card-detail {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
+/* Styles pour Performance par Site */
+.site-section-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.site-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.site-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.site-section-title::before {
+    content: "🏢";
+    font-size: 1.75rem;
+}
+
+.site-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.site-kpi-mini {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.site-kpi-mini-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.site-kpi-mini-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.pdc-table-wrapper {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    margin-top: 1.5rem;
+}
+
+.pdc-table-wrapper .report-table thead {
+    background: #f8fafc;
+}
+
+.pdc-table-wrapper .report-table thead th {
+    background: #f8fafc !important;
+    color: #1e293b !important;
+    font-weight: 600;
+}
+
+.pdc-table-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.badge-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-ok {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-nok {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-taux {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.taux-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.taux-bar {
+    width: 60px;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.taux-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+    
+    * {
+        box-sizing: border-box;
+    }
+    
+    .report-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .report-page {
+        page-break-after: always;
+        page-break-inside: avoid;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    /* Forcer tous les éléments à s'adapter */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto !important;
+    }
+    
+    .chart-container,
+    [id*="chart"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
+    
+    svg {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Corriger les débordements */
+    * {
+        max-width: 100% !important;
+        overflow-wrap: break-word !important;
+    }
+}
+
+.export-pdf-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.export-pdf-btn:hover {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.export-pdf-btn:active {
+    transform: translateY(0);
+}
+
+@media print {
+    .export-pdf-btn {
+        display: none;
+    }
+}
+</style>
+
+<div class="report-container">
+    <!-- Bouton d'export PDF -->
+    <button class="export-pdf-btn no-print" id="export-pdf-btn" onclick="exportToPDF()">
+        <span>📄</span>
+        <span>Exporter en PDF</span>
+    </button>
+    <!-- Alternative: Impression navigateur -->
+    <button class="export-pdf-btn no-print" id="print-pdf-btn" onclick="printPDF()" style="top: 70px;">
+        <span>🖨️</span>
+        <span>Imprimer (PDF)</span>
+    </button>
+    {% if error %}
+    <div style="padding: 2rem; text-align: center; color: #ef4444;">
+        <h2>❌ Erreur</h2>
+        <p>{{ error }}</p>
+    </div>
+    {% else %}
+    
+    <!-- 1. PAGE DE COUVERTURE -->
+    <div class="report-page report-cover">
+        <h1>📊 Rapport de Performance</h1>
+        <div class="subtitle">Réseau de Recharge</div>
+        <div class="period">
+            Période analysée : {{ date_debut }} → {{ date_fin }}
+        </div>
+        <div class="meta">
+            <div>Date de génération : {{ date_generation }}</div>
+            <div style="margin-top: 1rem;">
+                Sites inclus : 
+                {% if sites_list %}
+                    {{ sites_list|join(", ") }}
+                {% else %}
+                    Tous les sites
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 2. RÉSUMÉ EXÉCUTIF -->
+    <div class="report-page report-section">
+        <h2>📋 Résumé Exécutif</h2>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-card-label">Total charges</div>
+                <div class="kpi-card-value">{{ total_charges }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Taux de réussite</div>
+                <div class="kpi-card-value success">{{ taux_reussite }}%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Énergie totale</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(energy_total) }} kWh</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Sites actifs</div>
+                <div class="kpi-card-value">{{ sites_actifs }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Durée moyenne</div>
+                <div class="kpi-card-value">{{ "%.1f"|format(duree_moyenne) }} min</div>
+            </div>
+        </div>
+        
+        <div class="message-cle">
+            <strong>Message clé :</strong> {{ message_cle }}
+        </div>
+    </div>
+    
+    <!-- 3. PERFORMANCE GLOBALE -->
+    <div class="report-page report-section">
+        <h2>📊 Performance Globale</h2>
+        
+        <!-- Reprendre Générale -->
+        <h3>Métriques globales</h3>
+        <div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr);">
+            <div class="kpi-card">
+                <div class="kpi-card-label">Total charges</div>
+                <div class="kpi-card-value" title="Réussite + Échec = {{ ok_charges }} + {{ nok_charges }} = {{ total_charges }}">{{ total_charges }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Réussite</div>
+                <div class="kpi-card-value success">{{ ok_charges }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Échec</div>
+                <div class="kpi-card-value error">{{ nok_charges }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Taux réussite</div>
+                <div class="kpi-card-value success">{{ taux_reussite }}%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Taux échec</div>
+                <div class="kpi-card-value error">{{ taux_echec }}%</div>
+            </div>
+        </div>
+        
+        <!-- Taux de réussite par site (cartes) -->
+        <h3>Taux de réussite par site</h3>
+        {% if site_success_cards %}
+        <div class="site-cards-grid">
+            {% for item in site_success_cards %}
+            <div class="site-card">
+                <div class="site-card-color" style="background: {{ item.color }};"></div>
+                <div class="site-card-label">{{ item.site }}</div>
+                <div class="site-card-value" style="color: {{ item.color }};">{{ item.taux_ok }}%</div>
+                <div class="site-card-detail">{{ item.ok }}/{{ item.total }} OK</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Taux de réussite par site (barres) -->
+        {% if site_success_bars %}
+        <div style="margin-top: 2rem;">
+            <h4>Visualisation par barres</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                {% for item in site_success_bars %}
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="min-width: 150px; font-weight: 600;">{{ item.site }}</div>
+                    <div style="flex: 1; height: 30px; background: #e5e7eb; border-radius: 4px; position: relative; overflow: hidden;">
+                        <div style="height: 100%; width: {{ item.taux_ok }}%; background: {{ item.color }}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.85rem;">
+                            {{ item.taux_ok }}%
+                        </div>
+                    </div>
+                    <div style="min-width: 100px; text-align: right; font-weight: 600;">{{ item.total }} charges</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Tableau de performance par site (un seul tableau avec tous les sites) -->
+        <h3>Tableau de performance par site</h3>
+        {% if site_performance %}
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Site</th>
+                    <th>Total charges</th>
+                    <th>OK</th>
+                    <th>NOK</th>
+                    <th>Taux réussite</th>
+                    <th>Énergie totale (kWh)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for site in site_performance %}
+                <tr>
+                    <td><strong>{{ site.Site }}</strong></td>
+                    <td>{{ site.total }}</td>
+                    <td style="color: #10b981; font-weight: 600;">{{ site.ok }}</td>
+                    <td style="color: #ef4444; font-weight: 600;">{{ site.nok }}</td>
+                    <td style="color: #3b82f6; font-weight: 600;">{{ site.taux_ok }}%</td>
+                    <td>{{ "%.1f"|format(site.energy_total) if site.energy_total else "N/A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        
+        <!-- Graphique évolution -->
+        <h3>Évolution du taux de réussite</h3>
+        <div class="chart-container">
+            <div id="evolution-chart" style="height: 400px;"></div>
+        </div>
+        
+    </div>
+    
+    <!-- 4. ANALYSE DES ERREURS -->
+    <div class="report-page report-section">
+        <h2>🔍 Analyse des Erreurs</h2>
+        
+        <!-- Nombre total d'erreurs -->
+        {% if nok_charges %}
+        <div style="margin-bottom: 2rem;">
+            <h3>Nombre total d'erreurs : <span style="color: #ef4444; font-weight: 700;">{{ nok_charges }}</span></h3>
+        </div>
+        
+        <!-- Top 3 erreurs (EVI + Downstream) -->
+        {% if top_all_errors %}
+        <h3>Top 3 erreurs (EVI + Downstream)</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Moment</th>
+                    <th>Step</th>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Occurrences</th>
+                    <th>%</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for error in top_all_errors %}
+                <tr>
+                    <td><strong>{{ error.moment_label }}</strong></td>
+                    <td>{{ error.step if error.step else "N/A" }}</td>
+                    <td>{{ error.code }}</td>
+                    <td>{{ error.type }}</td>
+                    <td style="color: #ef4444; font-weight: 600;">{{ error.Occurrences }}</td>
+                    <td>{{ error.percent }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        {% endif %}
+        
+        <!-- Top 5 types d'erreurs -->
+        <h3>Top 5 types d'erreurs</h3>
+        {% if top_errors %}
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Type d'erreur</th>
+                    <th>Nombre</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for error in top_errors %}
+                <tr>
+                    <td>{{ error.rank }}</td>
+                    <td><strong>{{ error.type }}</strong></td>
+                    <td>{{ error.count }}</td>
+                    <td>{{ error.percentage }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #64748b; font-style: italic;">Aucune erreur sur la période sélectionnée.</p>
+        {% endif %}
+        
+        <!-- Détail Top 3 par site -->
+        {% if detail_all_pivot.columns %}
+        <h3>Détail Top 3 par site</h3>
+        <div style="overflow-x: auto; max-height: 500px;">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        {% for col in detail_all_pivot.columns %}
+                        <th style="{% if col != 'Site' and col != 'Total Charges' %}white-space: nowrap;{% endif %}">{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in detail_all_pivot.rows %}
+                    <tr>
+                        {% for col in detail_all_pivot.columns %}
+                        <td style="text-align:{{ 'left' if col == 'Site' else 'right' }};">{{ row[col] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: #64748b; font-style: italic;">Aucun détail disponible</p>
+        {% endif %}
+        
+        <!-- Répartition par moment -->
+        <h3>Répartition par moment d'erreur</h3>
+        {% if moment_distribution %}
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Moment</th>
+                    <th>Nombre</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for moment in moment_distribution %}
+                <tr>
+                    <td><strong>{{ moment.moment }}</strong></td>
+                    <td>{{ moment.count }}</td>
+                    <td>{{ moment.percentage }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        
+        <!-- Évolution des erreurs -->
+        <h3>Évolution des erreurs dans le temps</h3>
+        <div class="chart-container">
+            <div id="error-evolution-chart" style="height: 350px;"></div>
+        </div>
+    </div>
+    
+    <!-- 5. PERFORMANCE PAR SITE -->
+    <div class="report-page report-section">
+        <div class="site-section-header">
+            <h2 class="site-section-title">Performance par Site</h2>
+        </div>
+        
+        <!-- Vue d'ensemble des sites avec KPIs -->
+        {% if site_daily_stats %}
+        <div class="site-section-card">
+            <h3 style="margin-bottom: 1.5rem; color: #1e40af; font-size: 1.3rem;">📊 Vue d'ensemble des sites</h3>
+            <div class="site-kpi-grid">
+                {% for stat in site_daily_stats %}
+                <div class="site-kpi-mini">
+                    <div class="site-kpi-mini-label">{{ stat.site }}</div>
+                    <div class="site-kpi-mini-value" style="color: #1e40af;">{{ stat.total_charges }}</div>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem;">
+                        ⌀ {{ stat.avg_per_day }}/jour
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Graphique : Détail journalier du nombre de charge (Global toutes stations) -->
+        {% if daily_detail_global %}
+        <div class="site-section-card">
+            <h3 style="margin-bottom: 1.5rem; color: #1e40af; font-size: 1.3rem;">📈 Détail journalier global (toutes stations)</h3>
+            <div class="chart-container" style="background: white; border: 1px solid #e5e7eb;">
+                <div id="daily-detail-chart" style="height: 500px;"></div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Performance par PDC (un tableau par site) -->
+        {% if pdc_performance_by_site %}
+        {% for site_name, pdc_data in pdc_performance_by_site.items() %}
+        <div class="site-section-card">
+            <div class="pdc-table-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.3rem;">🔌</span>
+                    <span>Site : {{ site_name }}</span>
+                </div>
+            </div>
+            
+            <!-- KPIs généraux de la période pour ce site -->
+            {% if site_performance %}
+            {% set site_stats = site_performance | selectattr("Site", "equalto", site_name) | first %}
+            {% if site_stats %}
+            <div style="margin: 1.5rem 0; padding: 1.5rem; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6; border-radius: 12px;">
+                <h4 style="margin-bottom: 1rem; color: #1e40af; font-size: 1.1rem; font-weight: 600;">
+                    📊 KPIs Généraux — {{ site_name }} (période sélectionnée)
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600;">Total charges</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #1e40af;">{{ site_stats.total }}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600;">OK</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #10b981;">{{ site_stats.ok }}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600;">NOK</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #ef4444;">{{ site_stats.nok }}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center; border: 1px solid #e5e7eb;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600;">% Réussite</div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;">{{ site_stats.taux_ok }}%</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endif %}
+            
+            {% if pdc_data %}
+            <h4 style="margin: 1.5rem 0 1rem 0; color: #334155; font-size: 1.1rem; font-weight: 600;">
+                Performance par Point de Charge (PDC)
+            </h4>
+            
+            <div class="pdc-table-wrapper">
+                <table class="report-table" style="margin: 0;">
+                    <thead>
+                        <tr>
+                            <th style="background: #f8fafc; color: #1e293b;">PDC</th>
+                            <th style="background: #f8fafc; color: #1e293b;">Total</th>
+                            <th style="background: #f8fafc; color: #1e293b;">OK</th>
+                            <th style="background: #f8fafc; color: #1e293b;">NOK</th>
+                            <th style="background: #f8fafc; color: #1e293b;">Taux réussite</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pdc in pdc_data %}
+                        <tr>
+                            <td><strong style="color: #1e40af;">{{ pdc.PDC }}</strong></td>
+                            <td style="font-weight: 600;">{{ pdc.total }}</td>
+                            <td>
+                                <span class="badge-status badge-ok">✓ {{ pdc.ok }}</span>
+                            </td>
+                            <td>
+                                <span class="badge-status badge-nok">✗ {{ pdc.nok }}</span>
+                            </td>
+                            <td>
+                                <div class="taux-indicator">
+                                    <span class="badge-status badge-taux" style="min-width: 60px;">{{ pdc.taux_ok }}%</span>
+                                    <div class="taux-bar">
+                                        <div class="taux-bar-fill" style="width: {{ pdc.taux_ok }}%; background: {% if pdc.taux_ok >= 90 %}#10b981{% elif pdc.taux_ok >= 70 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            
+            <!-- Graphique détail journalier pour ce site -->
+            {% if daily_detail_by_site and daily_detail_by_site.get(site_name) %}
+            <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; font-weight: 600;">
+                📊 Détail journalier — {{ site_name }}
+            </h4>
+            <div class="chart-container" style="background: white; border: 1px solid #e5e7eb;">
+                <div id="daily-detail-chart-{{ site_name }}" style="height: 400px;"></div>
+            </div>
+            {% endif %}
+            
+            <!-- Liste des charges chronologique pour ce site -->
+            {% if charges_list_by_site and charges_list_by_site.get(site_name) %}
+            <h4 class="exclude-export-report" style="margin-top: 2rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; font-weight: 600;">
+                📋 Liste des charges chronologique — {{ site_name }}
+            </h4>
+            <div class="exclude-export-report" style="overflow-x: auto; overflow-y: auto; max-height: 500px; border: 1px solid #e5e7eb; border-radius: 8px; position: relative;">
+                <table class="report-table" style="margin: 0;">
+                    <thead style="position: sticky; top: 0; z-index: 10; background: #1e40af; color: white;">
+                        <tr>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid #1e3a8a;">ID</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid #1e3a8a;">Début</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid #1e3a8a;">Fin</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid #1e3a8a;">PDC</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: right; font-weight: 600; border: 1px solid #1e3a8a;">Énergie (kWh)</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: right; font-weight: 600; border: 1px solid #1e3a8a;">Puissance Max (kW)</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: right; font-weight: 600; border: 1px solid #1e3a8a;">SOC Start</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: right; font-weight: 600; border: 1px solid #1e3a8a;">SOC End</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid #1e3a8a;">Véhicule</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: center; font-weight: 600; border: 1px solid #1e3a8a;">Statut</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: center; font-weight: 600; border: 1px solid #1e3a8a;">Lien</th>
+                            <th style="background: #1e40af; color: white; padding: 1rem; text-align: center; font-weight: 600; border: 1px solid #1e3a8a;">Suivre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for charge in charges_list_by_site.get(site_name) %}
+                        <tr>
+                            <td>{{ charge.ID }}</td>
+                            <td>{{ charge['Datetime start'] }}</td>
+                            <td>{{ charge['Datetime end'] }}</td>
+                            <td>{{ charge.PDC }}</td>
+                            <td style="text-align:right;">{{ charge['Energy (Kwh)'] if charge['Energy (Kwh)'] is not none else '—' }}</td>
+                            <td style="text-align:right;">{{ charge['Max Power (Kw)'] if charge['Max Power (Kw)'] is not none else '—' }}</td>
+                            <td style="text-align:right;">{{ charge['SOC Start'] if charge['SOC Start'] is not none else '—' }}</td>
+                            <td style="text-align:right;">{{ charge['SOC End'] if charge['SOC End'] is not none else '—' }}</td>
+                            <td>{{ charge.Vehicle if charge.Vehicle is not none else '—' }}</td>
+                            <td style="text-align:center;">{{ charge.statut }}</td>
+                            <td style="text-align:center;">
+                                {% if charge.url %}
+                                <a href="{{ charge.url }}" target="_blank" style="color: #1d4ed8; font-weight: 600; text-decoration: underline;" class="pdf-link">Détail</a>
+                                {% else %}
+                                <span style="color: #9ca3af;">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align:center;">
+                                {% if charge.logv0_url %}
+                                <a href="{{ charge.logv0_url }}" target="_blank" style="color: #1d4ed8; font-weight: 600; text-decoration: underline;" class="pdf-link">Suivre</a>
+                                {% else %}
+                                <span style="color: #9ca3af;">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            
+            <!-- Top journée pour ce site -->
+            {% if top_day_by_site and top_day_by_site.get(site_name) %}
+            {% set top_day = top_day_by_site.get(site_name) %}
+            <div style="margin-top: 2.5rem; padding: 1.5rem; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px;">
+                <h3 style="margin-bottom: 1rem; color: #92400e; font-size: 1.3rem; font-weight: 700;">
+                    🏆 Top Journée — {{ site_name }}
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">Date</div>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: #1e293b;">{{ top_day.date }}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">Total charges</div>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: #1e40af;">{{ top_day.total }}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">OK</div>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: #10b981;">{{ top_day.ok }}</div>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">NOK</div>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: #ef4444;">{{ top_day.nok }}</div>
+                    </div>
+                </div>
+                
+                <!-- Graphique : Nombre de prises actives par heure -->
+                {% if top_day.hourly_active_sessions %}
+                <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; font-weight: 600;">
+                    📊 Nombre de prises actives par heure — {{ top_day.date }}
+                </h4>
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+                    {% set max_count = top_day.hourly_active_sessions|map(attribute='count')|max %}
+                    {% set min_count = top_day.hourly_active_sessions|map(attribute='count')|min %}
+                    {% set range_count = max_count - min_count if max_count > min_count else 1 %}
+                    {% set total_minutes = 24 * 60 %}
+                    {% set padding_top = 30 %}
+                    {% set padding_bottom = 20 %}
+                    {% set chart_height = 280 - padding_top - padding_bottom %}
+                    <div style="position:relative; width:100%; height:300px; padding:1rem 0 2rem 3rem; border:1px solid var(--color-border); border-radius:var(--radius); background:white;">
+                        <div style="position:absolute; left:0; top:0; bottom:2rem; width:2.5rem; display:flex; flex-direction:column; justify-content:space-between; font-size:0.75rem; color:var(--color-text-muted);">
+                            <span>{{ max_count }}</span>
+                            <span>{{ (max_count * 0.75)|int }}</span>
+                            <span>{{ (max_count * 0.5)|int }}</span>
+                            <span>{{ (max_count * 0.25)|int }}</span>
+                            <span>0</span>
+                        </div>
+                        <svg width="calc(100% - 3rem)" height="calc(100% - 2rem)" viewBox="0 0 1000 280" preserveAspectRatio="none" style="position:absolute; left:3rem; top:1rem;">
+                            <path fill="none" stroke="#3b82f6" stroke-width="2" d="{% for row in top_day.hourly_active_sessions %}{% set x_pos = (row.minutes_from_start / total_minutes * 1000) %}{% set y_pos = padding_top + ((max_count - row.count) / range_count * chart_height) if range_count > 0 else padding_top + (chart_height / 2) %}{% if loop.first %}M {{ x_pos }},{{ y_pos }}{% else %}{% set prev_row = top_day.hourly_active_sessions[loop.index0 - 1] %}{% set prev_x = (prev_row.minutes_from_start / total_minutes * 1000) %}{% set prev_y = padding_top + ((max_count - prev_row.count) / range_count * chart_height) if range_count > 0 else padding_top + (chart_height / 2) %} L {{ prev_x }},{{ y_pos }} L {{ x_pos }},{{ y_pos }}{% endif %}{% endfor %}"></path>
+                            {% for row in top_day.hourly_active_sessions %}
+                            {% set x_pos = (row.minutes_from_start / total_minutes * 1000) %}
+                            {% set y_pos = padding_top + ((max_count - row.count) / range_count * chart_height) if range_count > 0 else padding_top + (chart_height / 2) %}
+                            {% set label_offset = 15 if y_pos < padding_top + 20 else -8 %}
+                            <g>
+                                <circle cx="{{ x_pos }}" cy="{{ y_pos }}" r="4" fill="#3b82f6" style="cursor:pointer;"><title>{{ row.hour_label }}: {{ row.count }} session{{ 's' if row.count != 1 else '' }}</title></circle>
+                                <text x="{{ x_pos }}" y="{{ y_pos + label_offset }}" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af" style="pointer-events:none;">{{ row.count }}</text>
+                            </g>
+                            {% endfor %}
+                        </svg>
+                        <div style="position:absolute; bottom:0; left:3rem; right:0; height:2rem; display:flex; justify-content:space-between; font-size:0.75rem; color:var(--color-text-muted);">
+                            {% for hour in range(0, 24, 2) %}
+                            <span style="transform:translateX(-50%);">{{ hour }}:00</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem; font-size:0.85rem; color:var(--color-text-muted); text-align:center;">
+                        Max: {{ max_count }} session{{ 's' if max_count != 1 else '' }} | Min: {{ min_count }} session{{ 's' if min_count != 1 else '' }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Graphique : Temps cumulé par niveau d'utilisation -->
+                {% if top_day.usage_duration_by_level %}
+                <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; font-weight: 600;">
+                    ⏱️ Temps cumulé par niveau d'utilisation — {{ top_day.date }}
+                </h4>
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+                    {% set max_duration = top_day.usage_duration_by_level|map(attribute='duration_minutes')|max %}
+                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                        {% for item in top_day.usage_duration_by_level|sort(attribute='level', reverse=true) %}
+                        {% set bar_width = (item.duration_minutes / max_duration * 100) if max_duration > 0 else 0 %}
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <div style="min-width:80px; font-size:0.9rem; font-weight:600; color:var(--color-text);">
+                                {{ item.level }} prise{{ 's' if item.level != 1 else '' }}
+                            </div>
+                            <div style="flex:1; height:32px; background:#f3f4f6; border-radius:4px; overflow:hidden; position:relative;">
+                                <div style="height:100%; width:{{ bar_width }}%; background:linear-gradient(90deg, #3b82f6, #2563eb); transition:width 0.3s;"></div>
+                                <div style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); font-size:0.9rem; font-weight:600; color:var(--color-text); z-index:1;">
+                                    {{ item.duration_formatted }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Graphique : Evolution nombre de sessions -->
+                {% if top_day.hourly_sessions_count %}
+                <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; font-weight: 600;">
+                    📈 Evolution nombre de sessions — {{ top_day.date }}
+                </h4>
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+                    {% set max_count = top_day.hourly_sessions_count|map(attribute='count')|max %}
+                    {% set min_count = top_day.hourly_sessions_count|map(attribute='count')|min %}
+                    {% set range_count = max_count - min_count if max_count > min_count else 1 %}
+                    {% set total_minutes = 24 * 60 %}
+                    {% set padding_top = 30 %}
+                    {% set padding_bottom = 20 %}
+                    {% set chart_height = 280 - padding_top - padding_bottom %}
+                    <div style="position:relative; width:100%; height:300px; padding:1rem 0 2rem 3rem; border:1px solid var(--color-border); border-radius:var(--radius); background:white;">
+                        <div style="position:absolute; left:0; top:0; bottom:2rem; width:2.5rem; display:flex; flex-direction:column; justify-content:space-between; font-size:0.75rem; color:var(--color-text-muted);">
+                            <span>{{ max_count }}</span>
+                            <span>{{ (max_count * 0.75)|int }}</span>
+                            <span>{{ (max_count * 0.5)|int }}</span>
+                            <span>{{ (max_count * 0.25)|int }}</span>
+                            <span>0</span>
+                        </div>
+                        <svg width="calc(100% - 3rem)" height="calc(100% - 2rem)" viewBox="0 0 1000 280" preserveAspectRatio="none" style="position:absolute; left:3rem; top:1rem;">
+                            <path fill="none" stroke="#10b981" stroke-width="2.5" d="{% for row in top_day.hourly_sessions_count %}{% set x_pos = (row.minutes_from_start / total_minutes * 1000) %}{% set y_pos = padding_top + ((max_count - row.count) / range_count * chart_height) if range_count > 0 else padding_top + (chart_height / 2) %}{% if loop.first %}M {{ x_pos }},{{ y_pos }}{% else %} L {{ x_pos }},{{ y_pos }}{% endif %}{% endfor %}"></path>
+                            {% for row in top_day.hourly_sessions_count %}
+                            {% set x_pos = (row.minutes_from_start / total_minutes * 1000) %}
+                            {% set y_pos = padding_top + ((max_count - row.count) / range_count * chart_height) if range_count > 0 else padding_top + (chart_height / 2) %}
+                            {% set label_offset = 18 if y_pos < padding_top + 25 else -10 %}
+                            <g>
+                                <circle cx="{{ x_pos }}" cy="{{ y_pos }}" r="5" fill="#10b981" stroke="white" stroke-width="2" style="cursor:pointer;"><title>{{ row.hour_label }}: {{ row.count }} session{{ 's' if row.count != 1 else '' }}</title></circle>
+                                <text x="{{ x_pos }}" y="{{ y_pos + label_offset }}" text-anchor="middle" font-size="11" font-weight="600" fill="#059669" style="pointer-events:none;">{{ row.count }}</text>
+                            </g>
+                            {% endfor %}
+                        </svg>
+                        <div style="position:absolute; bottom:0; left:3rem; right:0; height:2rem; display:flex; justify-content:space-between; font-size:0.75rem; color:var(--color-text-muted);">
+                            {% for hour in range(0, 24, 2) %}
+                            <span style="transform:translateX(-50%);">{{ hour }}:00</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem; font-size:0.85rem; color:var(--color-text-muted); text-align:center;">
+                        Total sessions dans la journée: {{ max_count }} session{{ 's' if max_count != 1 else '' }} | Début: {{ min_count }} session{{ 's' if min_count != 1 else '' }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Moyenne de Temps cumulé par niveau d'utilisation sur la période (pour ce site) -->
+            {% if avg_usage_duration_by_level_by_site and avg_usage_duration_by_level_by_site.get(site_name) %}
+            <div style="margin-top: 2.5rem; padding: 1.5rem; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border: 2px solid #8b5cf6; border-radius: 12px;">
+                <h3 style="margin-bottom: 1.5rem; color: #6b21a8; font-size: 1.3rem; font-weight: 700;">
+                    📊 Moyenne de Temps cumulé par niveau d'utilisation (période sélectionnée) — {{ site_name }}
+                </h3>
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+                    {% set site_avg = avg_usage_duration_by_level_by_site.get(site_name) %}
+                    {% set max_duration_avg = site_avg|map(attribute='duration_minutes')|max %}
+                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                        {% for item in site_avg|sort(attribute='level', reverse=true) %}
+                        {% set bar_width = (item.duration_minutes / max_duration_avg * 100) if max_duration_avg > 0 else 0 %}
+                        <div style="display:flex; align-items:center; gap:1rem;">
+                            <div style="min-width:80px; font-size:0.9rem; font-weight:600; color:var(--color-text);">
+                                {{ item.level }} prise{{ 's' if item.level != 1 else '' }}
+                            </div>
+                            <div style="flex:1; height:32px; background:#f3f4f6; border-radius:4px; overflow:hidden; position:relative;">
+                                <div style="height:100%; width:{{ bar_width }}%; background:linear-gradient(90deg, #8b5cf6, #7c3aed); transition:width 0.3s;"></div>
+                                <div style="position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); font-size:0.9rem; font-weight:600; color:var(--color-text); z-index:1;">
+                                    {{ item.duration_formatted }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+        
+        <!-- Heatmap horaire -->
+        {% if heatmap_data %}
+        <div class="site-section-card">
+            <h3 style="margin-bottom: 1.5rem; color: #1e40af; font-size: 1.3rem;">🕐 Distribution horaire des charges</h3>
+            <div class="chart-container" style="background: white; border: 1px solid #e5e7eb;">
+                <div id="heatmap-chart" style="height: 400px;"></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- 6. ANALYSE ÉNERGÉTIQUE -->
+    <div class="report-page report-section">
+        <h2>⚡ Analyse Énergétique</h2>
+        
+        <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="kpi-card">
+                <div class="kpi-card-label">Énergie totale</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(energy_total) }} kWh</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Énergie moyenne</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(energy_avg) }} kWh</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Puissance maximale</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(puissance_max) }} kW</div>
+            </div>
+        </div>
+        
+        <!-- Distribution de l'énergie -->
+        {% if energy_distribution %}
+        <h3>Distribution de l'énergie par charge</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Tranche d'énergie (kWh)</th>
+                    <th>Nombre de charges</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dist in energy_distribution %}
+                <tr>
+                    <td><strong>{{ dist.range }}</strong></td>
+                    <td>{{ dist.count }}</td>
+                    <td>{{ dist.percentage }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="chart-container">
+            <div id="energy-distribution-chart" style="height: 350px;"></div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- 6B. ANALYSE DE LA DURÉE -->
+    <div class="report-page report-section">
+        <h2>⏱️ Analyse de la Durée</h2>
+        
+        <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="kpi-card">
+                <div class="kpi-card-label">Durée totale</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(duree_totale) }} min</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Durée moyenne</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(duree_moyenne_calc) }} min</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Durée maximale</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(duree_max) }} min</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-card-label">Durée minimale</div>
+                <div class="kpi-card-value info">{{ "%.1f"|format(duree_min) }} min</div>
+            </div>
+        </div>
+        
+        <!-- Distribution de la durée -->
+        {% if duration_distribution %}
+        <h3>Distribution de la durée par charge</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Tranche de durée (min)</th>
+                    <th>Nombre de charges</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dist in duration_distribution %}
+                <tr>
+                    <td><strong>{{ dist.range }}</strong></td>
+                    <td>{{ dist.count }}</td>
+                    <td>{{ dist.percentage }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="chart-container">
+            <div id="duration-distribution-chart" style="height: 350px;"></div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- 7. INSIGHTS ET RECOMMANDATIONS -->
+    <div class="report-page report-section">
+        <h2>💡 Insights et Recommandations</h2>
+        
+        <div class="insights-grid">
+            {% if points_forts %}
+            <div class="insight-box strong">
+                <h4>✅ Points Forts</h4>
+                <ul>
+                    {% for point in points_forts %}
+                    <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            {% if points_attention %}
+            <div class="insight-box attention">
+                <h4>⚠️ Points d'Attention</h4>
+                <ul>
+                    {% for point in points_attention %}
+                    <li>{{ point }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            {% if recommandations %}
+            <div class="insight-box recommendation">
+                <h4>💡 Recommandations</h4>
+                <ul>
+                    {% for rec in recommandations %}
+                    <li>{{ rec }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% endif %}
+</div>
+
+<!-- Scripts pour les graphiques Plotly -->
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+(function() {
+    // Graphique évolution du taux de réussite
+    {% if evolution_timeline %}
+    const evolutionData = {{ evolution_timeline | tojson }};
+    if (evolutionData && evolutionData.length > 0) {
+        const dates = evolutionData.map(d => d.date);
+        const taux = evolutionData.map(d => d.taux_reussite);
+        
+        const trace = {
+            x: dates,
+            y: taux,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Taux de réussite',
+            line: { color: '#3b82f6', width: 3 },
+            marker: { size: 8 }
+        };
+        
+        Plotly.newPlot('evolution-chart', [trace], {
+            title: 'Évolution du taux de réussite',
+            xaxis: { title: 'Date' },
+            yaxis: { title: 'Taux de réussite (%)', range: [0, 100] },
+            hovermode: 'x unified'
+        });
+    }
+    {% endif %}
+    
+    
+    
+    // Graphique évolution des erreurs
+    {% if error_evolution_timeline %}
+    const errorEvolutionData = {{ error_evolution_timeline | tojson }};
+    if (errorEvolutionData && errorEvolutionData.length > 0) {
+        const dates = errorEvolutionData.map(d => d.date);
+        const counts = errorEvolutionData.map(d => d.count);
+        
+        Plotly.newPlot('error-evolution-chart', [{
+            x: dates,
+            y: counts,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Nombre d\'erreurs',
+            line: { color: '#ef4444', width: 3 },
+            marker: { size: 8 }
+        }], {
+            title: 'Évolution du nombre d\'erreurs',
+            xaxis: { title: 'Date' },
+            yaxis: { title: 'Nombre d\'erreurs' },
+            hovermode: 'x unified'
+        });
+    }
+    {% endif %}
+    
+    // Heatmap horaire
+    {% if heatmap_data %}
+    const heatmapData = {{ heatmap_data | tojson }};
+    if (heatmapData && heatmapData.length > 0) {
+        const hours = heatmapData.map(h => h.hour);
+        const totals = heatmapData.map(h => h.total);
+        
+        Plotly.newPlot('heatmap-chart', [{
+            x: hours,
+            y: totals,
+            type: 'bar',
+            marker: { color: '#3b82f6' }
+        }], {
+            title: 'Distribution des charges par heure',
+            xaxis: { title: 'Heure', type: 'category' },
+            yaxis: { title: 'Nombre de charges' }
+        });
+    }
+    {% endif %}
+    
+    // Graphique détail journalier (Global toutes stations)
+    {% if daily_detail_global %}
+    const dailyDetailData = {{ daily_detail_global | tojson }};
+    if (dailyDetailData && dailyDetailData.length > 0) {
+        const dates = dailyDetailData.map(d => d.day);
+        const oks = dailyDetailData.map(d => d.ok);
+        const noks = dailyDetailData.map(d => d.nok);
+        
+        const traces = [
+            {
+                x: dates,
+                y: oks,
+                type: 'bar',
+                name: 'OK',
+                marker: { color: '#10b981' }
+            },
+            {
+                x: dates,
+                y: noks,
+                type: 'bar',
+                name: 'NOK',
+                marker: { color: '#ef4444' }
+            }
+        ];
+        
+        Plotly.newPlot('daily-detail-chart', traces, {
+            title: 'Détail journalier du nombre de charge (Global toutes stations)',
+            barmode: 'stack',
+            xaxis: { title: 'Date' },
+            yaxis: { title: 'Nombre de charges' },
+            hovermode: 'x unified'
+        });
+    }
+    {% endif %}
+    
+    // Distribution de l'énergie
+    {% if energy_distribution %}
+    const energyDistData = {{ energy_distribution | tojson }};
+    if (energyDistData && energyDistData.length > 0) {
+        const ranges = energyDistData.map(d => d.range);
+        const counts = energyDistData.map(d => d.count);
+        
+        Plotly.newPlot('energy-distribution-chart', [{
+            x: ranges,
+            y: counts,
+            type: 'bar',
+            marker: { color: '#10b981' }
+        }], {
+            title: 'Distribution de l\'énergie par charge',
+            xaxis: { title: 'Tranche d\'énergie (kWh)' },
+            yaxis: { title: 'Nombre de charges' }
+        });
+    }
+    {% endif %}
+    
+    // Distribution de la durée
+    {% if duration_distribution %}
+    const durationDistData = {{ duration_distribution | tojson }};
+    if (durationDistData && durationDistData.length > 0) {
+        const ranges = durationDistData.map(d => d.range);
+        const counts = durationDistData.map(d => d.count);
+        
+        Plotly.newPlot('duration-distribution-chart', [{
+            x: ranges,
+            y: counts,
+            type: 'bar',
+            marker: { color: '#3b82f6' }
+        }], {
+            title: 'Distribution de la durée par charge',
+            xaxis: { title: 'Tranche de durée (min)' },
+            yaxis: { title: 'Nombre de charges' }
+        });
+    }
+    {% endif %}
+    
+    // Graphiques détail journalier par site
+    {% if daily_detail_by_site %}
+    const dailyDetailBySiteData = {{ daily_detail_by_site | tojson }};
+    if (dailyDetailBySiteData && Object.keys(dailyDetailBySiteData).length > 0) {
+        for (const [siteName, dailyRows] of Object.entries(dailyDetailBySiteData)) {
+            if (dailyRows && dailyRows.length > 0) {
+                const dates = dailyRows.map(d => d.day);
+                const oks = dailyRows.map(d => d.ok);
+                const noks = dailyRows.map(d => d.nok);
+                
+                const traces = [
+                    {
+                        x: dates,
+                        y: oks,
+                        type: 'bar',
+                        name: 'OK',
+                        marker: { color: '#10b981' }
+                    },
+                    {
+                        x: dates,
+                        y: noks,
+                        type: 'bar',
+                        name: 'NOK',
+                        marker: { color: '#ef4444' }
+                    }
+                ];
+                
+                Plotly.newPlot(`daily-detail-chart-${siteName}`, traces, {
+                    title: `Détail journalier — ${siteName}`,
+                    barmode: 'stack',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Nombre de charges' },
+                    hovermode: 'x unified',
+                    showlegend: true
+                });
+            }
+        }
+    }
+    {% endif %}
+})();
+
+// Export PDF du rendu actuel (hors sections exclues)
+function exportToPDF() {
+    const exportBtn = document.getElementById('export-pdf-btn');
+
+    const dateDebut  = {{ selected_date_debut  | tojson }};
+    const dateFin    = {{ selected_date_fin     | tojson }};
+    const sites      = {{ selected_sites        | tojson }};
+    const errorTypes = {{ selected_error_types  | tojson }};
+    const moments    = {{ selected_moments      | tojson }};
+
+    const p = new URLSearchParams();
+    if (dateDebut)   p.set('date_debut',  dateDebut);
+    if (dateFin)     p.set('date_fin',    dateFin);
+    if (sites)       p.set('sites',       sites);
+    if (errorTypes)  p.set('error_types', errorTypes);
+    if (moments)     p.set('moments',     moments);
+
+    const url = '/api/report/export-pdf' + (p.toString() ? '?' + p.toString() : '');
+
+    if (exportBtn) {
+        exportBtn.innerHTML = '<span>⏳</span><span>Génération...</span>';
+        exportBtn.style.pointerEvents = 'none';
+        setTimeout(() => {
+            exportBtn.innerHTML = '<span>📄</span><span>Exporter en PDF</span>';
+            exportBtn.style.pointerEvents = '';
+        }, 5000);
+    }
+
+    window.open(url, '_blank');
+}
+
+// Fonction alternative: Impression navigateur (meilleur pour le formatage)
+function printPDF() {
+    // Masquer le bouton d'export
+    const exportBtn = document.getElementById('export-pdf-btn');
+    const printBtn = document.getElementById('print-pdf-btn');
+    if (exportBtn) exportBtn.style.display = 'none';
+    if (printBtn) printBtn.style.display = 'none';
+    
+    // Attendre un peu pour que les boutons disparaissent
+    setTimeout(() => {
+        window.print();
+        
+        // Restaurer les boutons après l'impression
+        setTimeout(() => {
+            if (exportBtn) exportBtn.style.display = 'flex';
+            if (printBtn) printBtn.style.display = 'flex';
+        }, 500);
+    }, 100);
+}
+</script>

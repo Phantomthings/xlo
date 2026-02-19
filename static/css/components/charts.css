@@ -1,0 +1,36 @@
+.bar-chart { display: flex; flex-direction: column; gap: 0.5rem; }
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.bar-label {
+    flex: 0 0 120px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bar-container {
+    flex: 1;
+    height: 24px;
+    background: var(--color-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+}
+.bar-success { background: linear-gradient(90deg, #86efac, #10b981); }
+.bar-danger { background: linear-gradient(90deg, #fca5a5, #ef4444); }
+.bar-value {
+    flex: 0 0 60px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+}
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }

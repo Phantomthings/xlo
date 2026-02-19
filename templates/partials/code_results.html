@@ -1,0 +1,549 @@
+<style>
+.mac-table td {
+    position: relative;
+}
+.error-details {
+    background: #fef2f2;
+    border: 1px solid #dc2626;
+    border-left: 3px solid #dc2626;
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    position: absolute;
+    z-index: 100;
+    margin-top: 0.25rem;
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    right: 0;
+}
+details summary::-webkit-details-marker {
+    display: none;
+}
+details summary::marker {
+    display: none;
+}
+.error-details-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+.error-details-row:last-child {
+    margin-bottom: 0;
+}
+.error-details-label {
+    font-weight: 600;
+    color: #991b1b;
+    min-width: 120px;
+}
+.error-details-value {
+    color: #7f1d1d;
+}
+</style>
+
+{% if error %}
+<div style="padding: 1rem; background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); color: #dc2626;">
+    {{ error }}
+</div>
+{% else %}
+
+<div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #fbbf24; border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.5rem;">
+    <div style="font-size: 1rem; font-weight: 700; color: #78350f;">
+        Codes analysés: {{ codes_str }}
+    </div>
+    <div style="font-size: 0.85rem; color: #92400e; margin-top: 0.25rem;">
+        {{ charges|length }} charges en erreur trouvées
+        {% if total_error_count %}
+            ({{ error_share_pct }}% des erreurs EVI + Downstream)
+        {% endif %}
+    </div>
+</div>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text);">
+        Charges en Erreur
+    </h3>
+    <div class="mac-table-container">
+        <table class="mac-table" id="error-charges-table">
+            <thead>
+                <tr>
+                    <th class="sortable" data-type="number" style="width: 60px;">N°</th>
+                    <th class="sortable">Site</th>
+                    <th class="sortable" data-type="number">PDC</th>
+                    <th class="sortable">Début</th>
+                    <th class="sortable">Fin</th>
+                    <th class="sortable">Durée</th>
+                    <th class="sortable">MAC</th>
+                    <th class="sortable">Véhicule</th>
+                    <th class="sortable">Erreur</th>
+                    <th class="sortable">SOC</th>
+                    <th class="sortable" data-type="number">Énergie (kWh)</th>
+                    <th style="width: 80px;">Lien</th>
+                    <th style="width: 50px;">Détails</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for charge in charges %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ charge.Site }}</td>
+                    <td>{{ charge.PDC }}</td>
+                    <td>{{ charge['Datetime start'].strftime('%Y-%m-%d %H:%M') if charge['Datetime start'] else '—' }}</td>
+                    <td>{{ charge['Datetime end'].strftime('%Y-%m-%d %H:%M') if charge['Datetime end'] else '—' }}</td>
+                    <td>{{ charge.get('duration') if charge.get('duration') is not none else '—' }}</td>
+                    <td class="mac-code">{{ charge['MAC Address'] }}</td>
+                    <td>{{ charge.Vehicle or '—' }}</td>
+                    <td style="color: #dc2626; font-weight: 500;">{{ charge.Erreur }}</td>
+                    <td>{{ charge['Évolution SOC'] or '—' }}</td>
+                    <td style="text-align: right;" data-sort-value="{{ charge['Energy (Kwh)'] or 0 }}">
+                        {% if charge['Energy (Kwh)'] %}{{ "%.3f"|format(charge['Energy (Kwh)']) }}{% else %}—{% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        <a href="{{ base_url }}{{ charge.ID }}" target="_blank" class="mac-link">Ouvrir</a>
+                    </td>
+                    <td style="text-align:center; padding: 0.25rem;">
+                        {% if charge.Erreur %}
+                        <details style="margin: 0; display: inline-block;">
+                            <summary style="cursor: pointer; color: #dc2626; font-weight: 600; font-size: 0.85rem; padding: 0.25rem 0.5rem; list-style: none; display: inline-block;">
+                                <span style="user-select: none;">🔴</span>
+                            </summary>
+                            <div class="error-details">
+                                {% if charge.type_erreur %}
+                                <div class="error-details-row">
+                                    <span class="error-details-label">Type d'erreur :</span>
+                                    <span class="error-details-value">{{ charge.type_erreur }}</span>
+                                </div>
+                                {% endif %}
+                                {% if charge.moment %}
+                                <div class="error-details-row">
+                                    <span class="error-details-label">Moment :</span>
+                                    <span class="error-details-value">{{ charge.moment }}</span>
+                                </div>
+                                {% endif %}
+                                {% if charge.get('Downstream Code PC') %}
+                                <div class="error-details-row">
+                                    <span class="error-details-label">Downstream Code PC :</span>
+                                    <span class="error-details-value">{{ charge['Downstream Code PC'] }}</span>
+                                </div>
+                                {% endif %}
+                                {% if charge.get('EVI Error Code') %}
+                                <div class="error-details-row">
+                                    <span class="error-details-label">EVI Error Code :</span>
+                                    <span class="error-details-value">{{ charge['EVI Error Code'] }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </details>
+                        {% else %}
+                        <span style="color:#9ca3af;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text);">
+        Histogramme des occurrences par véhicule
+    </h3>
+    {% if occ_vehicle and occ_vehicle|length > 0 %}
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for row in occ_vehicle %}
+        <div style="display: grid; grid-template-columns: 1.2fr 2fr 80px; gap: 0.75rem; align-items: center;">
+            <div style="font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ row.vehicle_label if row.vehicle_label else row.Vehicle }}
+            </div>
+            <div style="position: relative; height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden;">
+                <div style="position: absolute; inset: 0; background: linear-gradient(90deg, #f43f5e, #fb7185); width: {{ '%.1f'|format(row.occ_pct or 0) }}%;"></div>
+            </div>
+            <div style="text-align: right; font-weight: 700; color: #334155;">
+                {{ row.Occurrences }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding: 0.75rem 1rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius); color: #64748b;">
+        Pas d'occurrences véhicule pour ce filtre.
+    </div>
+    {% endif %}
+</div>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text);">
+        Histogramme mensuel des occurrences par site
+    </h3>
+    {% if monthly_hist and monthly_hist|length > 0 %}
+    <div id="monthly-chart" style="width: 100%; height: 500px;"></div>
+    {% else %}
+    <div style="padding: 0.75rem 1rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius); color: #64748b;">
+        Pas de données mensuelles pour ces filtres.
+    </div>
+    {% endif %}
+</div>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text);">
+        Occurrences par Site et PDC
+    </h3>
+    <div class="mac-table-container" style="max-height: 400px;">
+        <table class="mac-table" id="occ-table">
+            <thead>
+                <tr>
+                    <th class="sortable">Site</th>
+                    <th class="sortable" data-type="number">PDC</th>
+                    <th class="sortable" data-type="number">Occurrences</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in occ_site_pdc %}
+                <tr>
+                    <td>{{ row.Site }}</td>
+                    <td>{{ row.PDC }}</td>
+                    <td class="mac-number" data-sort-value="{{ row.Occurrences }}">
+                        {{ row.Occurrences }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.5rem; display:flex; flex-direction:column; gap:1rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--color-text);">
+        Zoom site / mois / jour
+    </h3>
+
+    {% if daily_counts and daily_counts|length > 0 %}
+    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+        <label style="font-weight:600; color:var(--color-text); display:flex; align-items:center; gap:0.4rem;">
+            Site
+            <select id="code-site-select" class="code-select" style="min-width:180px;"></select>
+        </label>
+        <label style="font-weight:600; color:var(--color-text); display:flex; align-items:center; gap:0.4rem;">
+            Mois
+            <select id="code-month-select" class="code-select" style="min-width:140px;"></select>
+        </label>
+        <label style="font-weight:600; color:var(--color-text); display:flex; align-items:center; gap:0.4rem;">
+            Jour
+            <select id="code-day-select" class="code-select" style="min-width:160px;"></select>
+        </label>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr; gap:1rem;">
+        <div style="border:1px solid var(--color-border); border-radius:var(--radius); padding:0.75rem; background:var(--color-bg);">
+            <div style="font-weight:600; color:var(--color-text); margin-bottom:0.5rem;">Occurrences par jour et PDC</div>
+            <div id="code-daily-chart" style="width:100%; height:360px;"></div>
+        </div>
+        <div style="border:1px solid var(--color-border); border-radius:var(--radius); padding:0.75rem; background:var(--color-bg);">
+            <div style="font-weight:600; color:var(--color-text); margin-bottom:0.5rem;">Occurrences par heure et PDC</div>
+            <div id="code-hourly-chart" style="width:100%; height:360px;"></div>
+        </div>
+    </div>
+    {% else %}
+    <div style="padding: 0.75rem 1rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: var(--radius); color: #64748b;">
+        Pas assez de données pour afficher les zooms par site.
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script>
+(function() {
+    {% if monthly_hist and monthly_hist|length > 0 %}
+    var monthlyData = {{ monthly_hist|tojson }};
+    
+    var siteColors = {};
+    var colorPalette = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+        '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5',
+        '#c49c94', '#f7b6d2', '#c7c7c7', '#dbdb8d', '#9edae5'
+    ];
+    var colorIdx = 0;
+    
+    var traces = {};
+    monthlyData.forEach(function(monthBlock) {
+        monthBlock.sites.forEach(function(siteRow) {
+            var siteName = siteRow.Site;
+            if (!siteColors[siteName]) {
+                siteColors[siteName] = colorPalette[colorIdx % colorPalette.length];
+                colorIdx++;
+            }
+            if (!traces[siteName]) {
+                traces[siteName] = {
+                    x: [],
+                    y: [],
+                    name: siteName,
+                    type: 'bar',
+                    marker: { color: siteColors[siteName] }
+                };
+            }
+            traces[siteName].x.push(monthBlock.month);
+            traces[siteName].y.push(siteRow.Occurrences);
+        });
+    });
+    
+    var tracesList = Object.values(traces);
+    
+    var layout = {
+        barmode: 'group',
+        xaxis: {
+            title: 'Mois',
+            type: 'category',
+            tickangle: -45
+        },
+        yaxis: {
+            title: 'Occurrences',
+            showgrid: true,
+            gridcolor: 'rgba(0,0,0,0.05)'
+        },
+        plot_bgcolor: '#f9f9f9',
+        bargap: 0.2,
+        showlegend: true,
+        legend: {
+            orientation: 'v',
+            x: 1.02,
+            y: 1,
+            xanchor: 'left'
+        },
+        margin: { l: 60, r: 150, t: 20, b: 80 }
+    };
+    
+    var config = {
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+    };
+    
+    Plotly.newPlot('monthly-chart', tracesList, layout, config);
+    {% endif %}
+
+    const siteOptions = {{ site_options|tojson }};
+    const dailyCounts = {{ daily_counts|tojson }};
+    const hourlyCounts = {{ hourly_counts|tojson }};
+
+    const siteSelect = document.getElementById('code-site-select');
+    const monthSelect = document.getElementById('code-month-select');
+    const daySelect = document.getElementById('code-day-select');
+    const dailyChart = document.getElementById('code-daily-chart');
+    const hourlyChart = document.getElementById('code-hourly-chart');
+
+    let currentSite = null;
+    let currentMonth = null;
+    let currentDay = null;
+
+    const palette = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b',
+        '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#ef4444', '#22c55e'
+    ];
+
+    function getMonthsForSite(site) {
+        const months = new Set();
+        dailyCounts.forEach(row => {
+            if (row.Site === site) months.add(row.month);
+        });
+        return Array.from(months).sort();
+    }
+
+    function getDaysForSiteMonth(site, month) {
+        const days = new Set();
+        dailyCounts.forEach(row => {
+            if (row.Site === site && row.month === month) days.add(row.day);
+        });
+        return Array.from(days).sort();
+    }
+
+    function getAllDaysInMonth(monthStr) {
+        const [y, m] = monthStr.split('-').map(Number);
+        const dt = new Date(y, m - 1, 1);
+        const days = [];
+        while (dt.getMonth() === m - 1) {
+            days.push(dt.toISOString().slice(0, 10));
+            dt.setDate(dt.getDate() + 1);
+        }
+        return days;
+    }
+
+    function renderDailyChart() {
+        if (!dailyChart || !currentSite || !currentMonth) return;
+        const monthDays = getAllDaysInMonth(currentMonth);
+
+        const filtered = dailyCounts.filter(
+            row => row.Site === currentSite && row.month === currentMonth
+        );
+
+        const pdcSet = new Set(filtered.map(r => r.PDC));
+        const dayPdcMap = {};
+
+        filtered.forEach(row => {
+            const key = row.day;
+            if (!dayPdcMap[key]) dayPdcMap[key] = {};
+            dayPdcMap[key][row.PDC] = row.Occurrences;
+        });
+
+        const traces = [];
+        Array.from(pdcSet).sort().forEach((pdc, idx) => {
+            traces.push({
+                x: monthDays,
+                y: monthDays.map(d => (dayPdcMap[d] && dayPdcMap[d][pdc]) || 0),
+                name: String(pdc),
+                type: 'bar',
+                marker: { color: palette[idx % palette.length] }
+            });
+        });
+
+        const layout = {
+            barmode: 'group',
+            bargap: 0.15,
+            xaxis: { title: 'Jour', tickangle: -45 },
+            yaxis: { title: 'Occurrences' },
+            showlegend: true,
+            margin: { t: 10, r: 10, b: 80, l: 50 }
+        };
+
+        Plotly.newPlot(dailyChart, traces, layout, { displayModeBar: false, responsive: true });
+    }
+
+    function renderHourlyChart() {
+        if (!hourlyChart || !currentSite || !currentDay) return;
+        const hours = Array.from({ length: 24 }, (_, i) => i);
+
+        const filtered = hourlyCounts.filter(
+            row => row.Site === currentSite && row.day === currentDay
+        );
+
+        const pdcSet = new Set(filtered.map(r => r.PDC));
+        const hourPdcMap = {};
+
+        filtered.forEach(row => {
+            const key = row.hour;
+            if (!hourPdcMap[key]) hourPdcMap[key] = {};
+            hourPdcMap[key][row.PDC] = row.Occurrences;
+        });
+
+        const traces = [];
+        Array.from(pdcSet).sort().forEach((pdc, idx) => {
+            traces.push({
+                x: hours,
+                y: hours.map(h => (hourPdcMap[h] && hourPdcMap[h][pdc]) || 0),
+                name: String(pdc),
+                type: 'bar',
+                marker: { color: palette[idx % palette.length] }
+            });
+        });
+
+        const layout = {
+            barmode: 'group',
+            bargap: 0.2,
+            xaxis: { title: 'Heure', dtick: 1 },
+            yaxis: { title: 'Occurrences' },
+            showlegend: true,
+            margin: { t: 10, r: 10, b: 50, l: 50 }
+        };
+
+        Plotly.newPlot(hourlyChart, traces, layout, { displayModeBar: false, responsive: true });
+    }
+
+    function initSiteMonthDaySelectors() {
+        if (!siteSelect || !monthSelect || !daySelect || !siteOptions.length) return;
+
+        siteSelect.innerHTML = siteOptions.map(s => `<option value="${s}">${s}</option>`).join('');
+        currentSite = siteOptions[0];
+
+        function refreshMonths() {
+            const months = getMonthsForSite(currentSite);
+            monthSelect.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join('');
+            currentMonth = months[months.length - 1] || null;
+            if (currentMonth) monthSelect.value = currentMonth;
+            refreshDays();
+        }
+
+        function refreshDays() {
+            const days = currentSite && currentMonth ? getDaysForSiteMonth(currentSite, currentMonth) : [];
+            daySelect.innerHTML = days.map(d => `<option value="${d}">${d}</option>`).join('');
+            currentDay = days[days.length - 1] || null;
+            if (currentDay) daySelect.value = currentDay;
+            renderDailyChart();
+            renderHourlyChart();
+        }
+
+        siteSelect.addEventListener('change', () => {
+            currentSite = siteSelect.value;
+            refreshMonths();
+        });
+
+        monthSelect.addEventListener('change', () => {
+            currentMonth = monthSelect.value;
+            refreshDays();
+        });
+
+        daySelect.addEventListener('change', () => {
+            currentDay = daySelect.value;
+            renderHourlyChart();
+        });
+
+        refreshMonths();
+    }
+
+    function initSorting(tableId) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        
+        var headers = table.querySelectorAll('th.sortable');
+        var tbody = table.querySelector('tbody');
+        var currentSort = { col: null, dir: 'asc' };
+
+        function parseValue(text, type) {
+            var cleaned = (text || '').toString().replace(/\s+/g, '').replace('%', '');
+            if (type === 'number') {
+                return parseFloat(cleaned) || 0;
+            }
+            return cleaned.toLowerCase();
+        }
+
+        function sortTable(colIndex, type) {
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+            var mult = dir === 'asc' ? 1 : -1;
+
+            rows.sort(function(a, b) {
+                var aVal = parseValue(
+                    a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(),
+                    type
+                );
+                var bVal = parseValue(
+                    b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(),
+                    type
+                );
+                return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+            });
+
+            rows.forEach(function(row) { tbody.appendChild(row); });
+
+            headers.forEach(function(h) {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            headers[colIndex].classList.add('sorted-' + dir);
+
+            currentSort = { col: colIndex, dir: dir };
+        }
+
+        headers.forEach(function(th, index) {
+            th.addEventListener('click', function() {
+                sortTable(index, th.dataset.type || 'text');
+            });
+        });
+    }
+
+    initSorting('error-charges-table');
+    initSorting('occ-table');
+    initSiteMonthDaySelectors();
+})();
+</script>
+
+{% endif %}

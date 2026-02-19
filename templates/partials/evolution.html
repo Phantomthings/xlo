@@ -1,0 +1,182 @@
+<style>
+.mac-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    max-height: 600px;
+    overflow-y: auto;
+}
+.mac-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.mac-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+}
+.mac-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.mac-table th:hover { background: #e2e8f0; }
+.mac-table th.sortable::after { content: ' ⇅'; color: var(--color-text-muted); font-size: 0.75rem; }
+.mac-table th.sorted-asc::after { content: ' ▲'; color: var(--color-primary); }
+.mac-table th.sorted-desc::after { content: ' ▼'; color: var(--color-primary); }
+.mac-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+.mac-table tbody tr:hover { background: #f9fafb; }
+</style>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;">
+    <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text);">
+        Évolution mensuelle du taux de réussite global (Erreurs de fin de charge exclus) 
+    </h3>
+
+    {% if error_message %}
+    <div style="padding: 1rem; background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); color: #dc2626;">
+        {{ error_message }}
+    </div>
+    {% elif no_data %}
+    <div style="padding: 1rem; background: #dbeafe; border: 1px dashed #93c5fd; border-radius: var(--radius); color: #1e40af;">
+        Aucune donnée disponible
+    </div>
+    {% else %}
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border: 1px solid #93c5fd; border-radius: var(--radius); padding: 1.25rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: #1e40af; text-transform: uppercase; margin-bottom: 0.5rem;">
+                Dernier mois
+            </div>
+            <div style="font-size: 2rem; font-weight: 700; color: #1e3a8a;">
+                {{ latest_rate }}%
+            </div>
+            <div style="font-size: 0.85rem; color: #1e40af; margin-top: 0.25rem;">
+                {{ rows[-1]['mois_affiche'] }}
+            </div>
+        </div>
+
+        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.25rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                Tendance
+            </div>
+            {% if variation is not none %}
+                {% if variation >= 0 %}
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; background: #dcfce7; color: #15803d; border-radius: 6px; font-weight: 600; font-size: 0.95rem;">
+                    ▲ +{{ variation|round(1) }} %
+                </div>
+                {% else %}
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; background: #fee2e2; color: #dc2626; border-radius: 6px; font-weight: 600; font-size: 0.95rem;">
+                    ▼ {{ variation|round(1) }} %
+                </div>
+                {% endif %}
+                <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+                    Précédent: {{ previous_rate }}%
+                </div>
+            {% else %}
+                <div style="font-size: 0.85rem; color: var(--color-text-muted);">
+                    Pas d'historique
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: flex-end; height: 300px; gap: 0.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--color-border);">
+            {% for row in rows %}
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%;">
+                <div style="width: 100%; max-width: 60px; background: linear-gradient(180deg, #3b82f6, #2563eb); border-radius: 4px 4px 0 0; position: relative; height: {{ row.taux_pct }}%;">
+                    <div style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; font-weight: 700; white-space: nowrap;">
+                        {{ row.taux_pct }}%
+                    </div>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--color-text-muted);">
+                    {{ row.mois_affiche }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="mac-table-container">
+        <table class="mac-table" id="evo-table">
+            <thead>
+                <tr>
+                    <th class="sortable">Mois</th>
+                    <th class="sortable" data-type="number">Taux de réussite (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.mois_affiche }}</td>
+                    <td style="text-align: right; font-weight: 600;" data-sort-value="{{ row.taux_pct }}">
+                        {{ row.taux_pct }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+    (function() {
+        var table = document.getElementById('evo-table');
+        if (!table) return;
+        
+        var headers = table.querySelectorAll('th.sortable');
+        var tbody = table.querySelector('tbody');
+        var currentSort = { col: null, dir: 'asc' };
+
+        function parseValue(text, type) {
+            var cleaned = (text || '').toString().replace(/\s+/g, '').replace('%', '');
+            if (type === 'number') {
+                return parseFloat(cleaned) || 0;
+            }
+            return cleaned.toLowerCase();
+        }
+
+        function sortTable(colIndex, type) {
+            var rows = Array.from(tbody.querySelectorAll('tr'));
+            var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+            var mult = dir === 'asc' ? 1 : -1;
+
+            rows.sort(function(a, b) {
+                var aVal = parseValue(
+                    a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(),
+                    type
+                );
+                var bVal = parseValue(
+                    b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(),
+                    type
+                );
+                return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+            });
+
+            rows.forEach(function(row) { tbody.appendChild(row); });
+
+            headers.forEach(function(h) {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            headers[colIndex].classList.add('sorted-' + dir);
+
+            currentSort = { col: colIndex, dir: dir };
+        }
+
+        headers.forEach(function(th, index) {
+            th.addEventListener('click', function() {
+                sortTable(index, th.dataset.type || 'text');
+            });
+        });
+    })();
+    </script>
+
+    {% endif %}
+</div>

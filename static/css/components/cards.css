@@ -1,0 +1,82 @@
+.watch-card {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin: 1rem 0;
+}
+.watch-card-title {
+    color: #1d4ed8;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.watch-card-sites {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.site-expander { margin-bottom: 0.5rem; }
+.site-expander summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg);
+    border-radius: var(--radius);
+    cursor: pointer;
+    list-style: none;
+}
+.site-expander summary::-webkit-details-marker { display: none; }
+.site-expander summary::before {
+    content: '▶';
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+    transition: transform 0.2s;
+}
+.site-expander[open] summary::before { transform: rotate(90deg); }
+.site-content {
+    padding: 1rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.defects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+.defect-card {
+    padding: 0.75rem;
+    border-radius: var(--radius);
+    border-left: 4px solid;
+}
+.defect-card.critical {
+    border-left-color: var(--color-danger);
+    background: linear-gradient(90deg, #fef2f2, white);
+}
+.defect-card.warning {
+    border-left-color: var(--color-warning);
+    background: linear-gradient(90deg, #fffbeb, white);
+}
+.defect-name { font-weight: 600; font-size: 0.9rem; }
+.defect-eqp { color: var(--color-text-muted); font-size: 0.8rem; }
+.defect-duration { color: #94a3b8; font-size: 0.75rem; font-style: italic; margin-top: 0.25rem; }
+
+.equipment-header {
+    display: inline-block;
+    padding: 0.4rem 0.75rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 4px;
+    color: #0369a1;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin: 1rem 0 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .defects-grid { grid-template-columns: 1fr; }
+}

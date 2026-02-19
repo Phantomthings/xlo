@@ -1,0 +1,491 @@
+<style>
+.recap-row.pdc-row.success-high {
+    background: linear-gradient(90deg, #a7f3d0, #d1fae5) !important;
+}
+.recap-row.pdc-row.success-medium {
+    background: linear-gradient(90deg, #fcd34d, #fef3c7) !important;
+}
+.recap-row.pdc-row.warning {
+    background: linear-gradient(90deg, #fca5a5, #fecaca) !important;
+}
+.recap-row.pdc-row.danger {
+    background: linear-gradient(90deg, #f87171, #fca5a5) !important;
+}
+
+.recap-row.pdc-row.success-high:hover {
+    background: linear-gradient(90deg, #86efac, #a7f3d0) !important;
+}
+.recap-row.pdc-row.success-medium:hover {
+    background: linear-gradient(90deg, #fbbf24, #fcd34d) !important;
+}
+.recap-row.pdc-row.warning:hover {
+    background: linear-gradient(90deg, #f87171, #fca5a5) !important;
+}
+.recap-row.pdc-row.danger:hover {
+    background: linear-gradient(90deg, #ef4444, #f87171) !important;
+}
+.mac-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    max-height: 600px;
+    overflow-y: auto;
+}
+.mac-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.mac-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+}
+.mac-table th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.mac-table th:hover { background: #e2e8f0; }
+.mac-table th.sortable::after { content: ' ⇅'; color: var(--color-text-muted); font-size: 0.75rem; }
+.mac-table th.sorted-asc::after { content: ' ▲'; color: var(--color-primary); }
+.mac-table th.sorted-desc::after { content: ' ▼'; color: var(--color-primary); }
+.mac-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+.mac-table tbody tr:hover { background: #f9fafb; }
+.recap-row.site-row { cursor: pointer; }
+.recap-row.site-row:hover { background: #f8fafc; }
+.recap-row.pdc-row td { padding-left: 2.5rem; font-weight: 600; }
+.recap-row.site-row td { font-weight: 700; }
+.recap-row .sub-label { color: var(--color-text-muted); font-weight: 500; }
+
+.recap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.recap-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+}
+.recap-card-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.recap-card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.bar-label {
+    min-width: 120px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+.bar-container {
+    flex: 1;
+    height: 32px;
+    background: #f3f4f6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+.bar-danger {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+.bar-value {
+    min-width: 60px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+.text-danger { color: #ef4444; }
+
+.success-section {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.success-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 1rem;
+}
+
+.success-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.success-metric-card {
+    background: #f8fafc;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    display: grid;
+    grid-template-areas:
+        "dot label rate"
+        "dot value rate";
+    grid-template-columns: auto 1fr auto;
+    gap: 0.35rem 0.5rem;
+    align-items: center;
+}
+
+.success-dot {
+    grid-area: dot;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+.success-label {
+    grid-area: label;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.success-value {
+    grid-area: value;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.success-rate {
+    grid-area: rate;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--color-text);
+}
+
+.success-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.success-bar-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 70px;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.success-bar-label {
+    font-weight: 600;
+    color: var(--color-text);
+    text-align: right;
+}
+
+.success-bar-track {
+    position: relative;
+    height: 32px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.success-bar-fill {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    transition: width 0.3s ease;
+}
+
+.success-bar-value {
+    font-weight: 700;
+    color: var(--color-text);
+    text-align: right;
+}
+
+@media (max-width: 768px) {
+    .success-bar-row {
+        grid-template-columns: 110px 1fr 60px;
+    }
+}
+</style>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;">
+
+    <div class="recap-grid">
+        <div class="recap-card">
+            <div class="recap-card-label">Total charges</div>
+            <div class="recap-card-value">{{ total }}</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Réussite</div>
+            <div class="recap-card-value" style="color: #10b981;">{{ ok }}</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Échec</div>
+            <div class="recap-card-value" style="color: #ef4444;">{{ nok }}</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Taux réussite</div>
+            <div class="recap-card-value" style="color: #3b82f6;">{{ taux_reussite }}%</div>
+        </div>
+        <div class="recap-card">
+            <div class="recap-card-label">Taux échec</div>
+            <div class="recap-card-value" style="color: #f59e0b;">{{ taux_echec }}%</div>
+        </div>
+    </div>
+
+    <div class="success-section">
+        <div class="success-title">Taux de réussite par site</div>
+        {% if site_success_cards %}
+        <div class="success-metrics-grid">
+            {% for item in site_success_cards %}
+            <div class="success-metric-card">
+                <span class="success-dot" style="background: {{ item.color }};"></span>
+                <div class="success-label">{{ item.site }}</div>
+                <div class="success-rate">{{ item.taux_ok }}%</div>
+                <div class="success-value">{{ item.ok }}/{{ item.total }} OK</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="success-bars">
+            {% for item in site_success_bars %}
+            <div class="success-bar-row">
+                <div class="success-bar-label">{{ item.site }}</div>
+                <div class="success-bar-track">
+                    <div class="success-bar-fill" style="width: {{ item.taux_ok }}%; background: {{ item.color }};">{{ item.taux_ok }}%</div>
+                </div>
+                <div class="success-bar-value">{{ item.total }} Charges</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="padding: 0.75rem 0; color: var(--color-text-muted);">Aucune donnée par site sur la période sélectionnée.</div>
+        {% endif %}
+    </div>
+
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--color-text);">
+            Récapitulatif des erreurs par site et moment
+        </h4>
+        {% if recap_rows %}
+        <div class="mac-table-container">
+            <table class="mac-table" id="recap-table">
+                <thead>
+                    <tr>
+                        {% for col in recap_columns %}
+                        {% set integer_columns = ['Init', 'Lock Connector', 'CableCheck', 'Charge', 'Fin de charge', 'Unknown'] %}
+                        {% set is_numeric = col in integer_columns or col in ['Total', 'Total_OK', 'Total_NOK', '% OK', '% NOK'] %}
+                        <th class="sortable" data-type="{{ 'number' if is_numeric else 'text' }}">{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in recap_rows %}
+                    {% if row.row_type == 'pdc' %}
+                        {% set taux_ok = row['% OK'] | float %}
+                        {% if taux_ok >= 80 %}
+                            {% set color_class = 'success-high' %}
+                        {% elif taux_ok >= 60 %}
+                            {% set color_class = 'success-medium' %}
+                        {% elif taux_ok >= 30 %}
+                            {% set color_class = 'warning' %}
+                        {% else %}
+                            {% set color_class = 'danger' %}
+                        {% endif %}
+                    {% else %}
+                        {% set color_class = '' %}
+                    {% endif %}
+
+                    <tr class="recap-row {{ 'site-row' if row.row_type == 'site' else 'pdc-row' }} {{ color_class }}" 
+                        data-site-key="{{ row.site_key }}" 
+                        {% if row.row_type == 'site' %}data-nav-tab="details-site" data-site-focus="{{ row.site_key }}" title="Voir le détail du site"{% endif %}>
+                        {% for col in recap_columns %}
+                        {% set value = row[col] %}
+                        {% set integer_columns = ['Init', 'Lock Connector', 'CableCheck', 'Charge', 'Fin de charge', 'Unknown'] %}
+                        {% set is_integer = col in integer_columns %}
+                        <td data-sort-value="{{ value }}">
+                            {% if col in ['Site / PDC'] and row.row_type == 'pdc' %}
+                                <span class="sub-label">{{ value }}</span>
+                            {% elif col in ['% OK', '% NOK'] %}
+                                {{ value | round(2) }}%
+                            {% elif is_integer %}
+                                {{ value | int }}
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="padding: 1rem; color: var(--color-text-muted); text-align: center;">
+            Aucune donnée récapitulative disponible pour ce périmètre
+        </div>
+        {% endif %}
+    </div>
+
+<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem; margin-top: 1.25rem;">
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--color-text);">
+            Répartition des types d'erreur
+        </h4>
+        {% if error_type_distribution %}
+        <div class="bar-chart">
+            {% for item in error_type_distribution %}
+            <div class="bar-row">
+                <span class="bar-label">{{ item.label }}</span>
+                <div class="bar-container">
+                    <div class="bar bar-danger" style="width: {{ item.percent }}%;"></div>
+                </div>
+                <span class="bar-value text-danger">{{ item.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top: 1rem; font-weight: 600; color: var(--color-text);">
+            Total erreurs : {{ error_type_total }}
+        </div>
+        {% else %}
+        <div style="padding: 1rem; color: var(--color-text-muted); text-align: center;">
+            Aucun des types d'erreur suivis (EVI, Downstream ou Erreur_Unknow_S) sur la période sélectionnée
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: 1.5rem;">
+        <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--color-text);">
+            Répartition des erreurs par moment (EVI + Downstream)
+        </h4>
+        {% if moment_distribution %}
+        <div class="bar-chart">
+            {% for item in moment_distribution %}
+            <div class="bar-row">
+                <span class="bar-label">{{ item.moment }}</span>
+                <div class="bar-container">
+                    <div class="bar bar-danger" style="width: {{ item.percent }}%;"></div>
+                </div>
+                <span class="bar-value text-danger">{{ item.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top: 1rem; font-weight: 600; color: var(--color-text);">
+            Total erreurs : {{ moment_total_errors }}
+        </div>
+        {% else %}
+        <div style="padding: 1rem; color: var(--color-text-muted); text-align: center;">
+            Aucune erreur sur la période sélectionnée
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+(function() {
+    var table = document.getElementById('recap-table');
+    if (!table) return;
+    
+    var headers = table.querySelectorAll('th.sortable');
+    var tbody = table.querySelector('tbody');
+    var currentSort = { col: null, dir: 'asc' };
+
+    function parseValue(text, type) {
+        var cleaned = (text || '').toString().replace(/\s+/g, '').replace('%', '');
+        if (type === 'number') {
+            return parseFloat(cleaned) || 0;
+        }
+        return cleaned.toLowerCase();
+    }
+
+    function sortTable(colIndex, type) {
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        var dir = currentSort.col === colIndex && currentSort.dir === 'asc' ? 'desc' : 'asc';
+        var mult = dir === 'asc' ? 1 : -1;
+
+        var groupedRows = rows.reduce(function(map, row) {
+            var key = row.dataset.siteKey || 'unknown';
+            if (!map[key]) {
+                map[key] = { site: null, pdcs: [] };
+            }
+            if (row.classList.contains('site-row')) {
+                map[key].site = row;
+            } else {
+                map[key].pdcs.push(row);
+            }
+            return map;
+        }, {});
+
+        var siteRows = rows.filter(function(row) { return row.classList.contains('site-row'); });
+
+        siteRows.sort(function(a, b) {
+            var aVal = parseValue(
+                a.children[colIndex].dataset.sortValue || a.children[colIndex].textContent.trim(),
+                type
+            );
+            var bVal = parseValue(
+                b.children[colIndex].dataset.sortValue || b.children[colIndex].textContent.trim(),
+                type
+            );
+            return aVal < bVal ? -mult : aVal > bVal ? mult : 0;
+        });
+
+        siteRows.forEach(function(siteRow) {
+            var siteKey = siteRow.dataset.siteKey || 'unknown';
+            var group = groupedRows[siteKey] || { pdcs: [] };
+            tbody.appendChild(siteRow);
+            group.pdcs.forEach(function(pdcRow) { tbody.appendChild(pdcRow); });
+        });
+
+        headers.forEach(function(h) {
+            h.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        headers[colIndex].classList.add('sorted-' + dir);
+
+        currentSort = { col: colIndex, dir: dir };
+    }
+
+    headers.forEach(function(th, index) {
+        th.addEventListener('click', function() {
+            sortTable(index, th.dataset.type || 'text');
+        });
+    });
+})();
+</script>

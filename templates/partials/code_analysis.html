@@ -1,0 +1,238 @@
+<style>
+    .code-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .code-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-text);
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--color-border);
+    }
+    .code-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .code-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .code-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+    }
+    .code-input {
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        transition: border-color 0.15s;
+    }
+    .code-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    .code-select {
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        background: white;
+        cursor: pointer;
+    }
+    .code-btn {
+        padding: 0.6rem 1.5rem;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+    .code-btn:hover {
+        background: #b91c1c;
+    }
+    .code-hint {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-top: 0.5rem;
+    }
+    @media (max-width: 900px) {
+        .code-form {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .mac-table-container {
+        overflow-x: auto;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .mac-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    .mac-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: linear-gradient(180deg, #f8fafc, #f1f5f9);
+    }
+    .mac-table th {
+        padding: 0.85rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--color-text);
+        border-bottom: 2px solid var(--color-border);
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .mac-table th:hover { background: #e2e8f0; }
+    .mac-table th.sortable::after { content: ' ⇅'; color: var(--color-text-muted); font-size: 0.75rem; }
+    .mac-table th.sorted-asc::after { content: ' ▲'; color: var(--color-primary); }
+    .mac-table th.sorted-desc::after { content: ' ▼'; color: var(--color-primary); }
+    .mac-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+    .mac-table tbody tr:hover { background: #f9fafb; }
+    .mac-table tbody tr.clickable { cursor: pointer; transition: background 0.15s; }
+    .mac-table tbody tr.clickable:hover { background: #e0f2fe; }
+    .mac-code { font-family: 'Courier New', monospace; font-weight: 500; color: var(--color-text); }
+    .mac-number { text-align: right; font-weight: 600; color: var(--color-primary); }
+    .mac-link { color: var(--color-primary); text-decoration: none; font-weight: 500; }
+    .mac-link:hover { text-decoration: underline; }
+<style>
+    .code-section {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .code-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-text);
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--color-border);
+    }
+    .code-form {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 1rem;
+        align-items: start;
+    }
+    .code-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .code-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+    }
+    .code-input {
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        transition: border-color 0.15s;
+    }
+    .code-input:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    .code-select {
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        background: white;
+        cursor: pointer;
+    }
+    .code-btn {
+        padding: 0.6rem 1.5rem;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        white-space: nowrap;
+        margin-top: 1.7rem;
+        height: 42px;
+    }
+    .code-btn:hover {
+        background: #b91c1c;
+    }
+    .code-hint {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+        margin-top: 0.5rem;
+    }
+    @media (max-width: 900px) {
+        .code-form {
+            grid-template-columns: 1fr;
+        }
+        .code-btn {
+            margin-top: 0.5rem;
+        }
+    }
+</style>
+
+<div class="code-section">
+    <div class="code-section-title">Analyse par Codes d'Erreur</div>
+    
+    <form hx-post="/api/mac-address/code-analysis/search" hx-target="#code-results" hx-trigger="submit" class="code-form">
+        <input type="hidden" name="sites" value="{{ request.query_params.get('sites', '') }}">
+        <input type="hidden" name="date_debut" value="{{ request.query_params.get('date_debut', '') }}">
+        <input type="hidden" name="date_fin" value="{{ request.query_params.get('date_fin', '') }}">
+        <input type="hidden" name="error_types" value="{{ request.query_params.get('error_types', '') }}">
+        <input type="hidden" name="moments" value="{{ request.query_params.get('moments', '') }}">
+
+        <div class="code-input-group">
+            <label class="code-label">Code(s) d'erreur</label>
+            <input
+                type="text"
+                name="codes"
+                class="code-input"
+                placeholder="ex: 512, 84, 90"
+                required>
+            <div class="code-hint">
+                Saisissez un ou plusieurs codes séparés par virgules, espaces ou point-virgule
+            </div>
+        </div>
+
+        <div class="code-input-group">
+            <label class="code-label">Type de code</label>
+            <select name="code_type" class="code-select">
+                <option value="Tous">Tous</option>
+                <option value="Erreur_EVI">EVI</option>
+                <option value="Erreur_DownStream">Downstream</option>
+            </select>
+        </div>
+        
+        <button type="submit" class="code-btn">Analyser</button>
+    </form>
+
+    <div id="code-results" style="margin-top: 1.5rem;"></div>
+</div>
